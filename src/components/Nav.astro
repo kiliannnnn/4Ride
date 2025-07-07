@@ -1,0 +1,21 @@
+---
+import { getLangFromUrl, useTranslations, useTranslationsRoute } from "@/i18n/utils";
+import { getRelativeLocaleUrl } from "astro:i18n";
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const tRoute = useTranslationsRoute(lang);
+---
+
+<ul class="menu px-1 lg:menu-horizontal sm:dropdown-content sm:bg-base-100 sm:rounded-box sm:z-[1] sm:mt-3 w-52 lg:w-auto sm:p-2 sm:shadow">
+    <li>
+        <a href={getRelativeLocaleUrl(lang, "")}>
+            {t("nav.home")}
+        </a>
+    </li>
+    <li>
+        <a href={getRelativeLocaleUrl(lang, tRoute("about"))}>
+            {t("nav.about")}
+        </a>
+    </li>
+</ul>

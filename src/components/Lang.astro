@@ -1,0 +1,34 @@
+---
+import { languages } from "@/i18n/ui";
+import {
+    getLangFromUrl,
+    useTranslatedPath,
+    getRouteFromUrl,
+} from "@/i18n/utils";
+
+const lang = getLangFromUrl(Astro.url);
+const translatePath = useTranslatedPath(lang);
+const route = getRouteFromUrl(Astro.url);
+
+const languageEntries = Object.entries(languages).map(([locale, label]) => ({
+    locale,
+    label,
+    isCurrent: locale === lang,
+    path: translatePath(`/${route ? route : ""}`, locale),
+}));
+---
+
+<details class="dropdown dropdown-end">
+    <summary role="button" class="btn btn-ghost">
+        {languageEntries.find(entry => entry.isCurrent)?.label}
+    </summary>
+    <ul class="menu dropdown-content bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+        {languageEntries.map(({ locale, label, path }) => (
+            <li>
+                <a href={path}>
+                    {label}
+                </a>
+            </li>
+        ))}
+    </ul>
+</details>

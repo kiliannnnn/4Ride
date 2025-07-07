@@ -1,0 +1,73 @@
+---
+import { Icon } from "astro-icon/components";
+import Theme from "@/components/Theme.astro";
+
+import {
+    getLangFromUrl,
+    useTranslations,
+    useTranslationsRoute,
+} from "@/i18n/utils";
+import { getRelativeLocaleUrl } from 'astro:i18n';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const tRoute = useTranslationsRoute(lang);
+---
+
+<div class="grid min-h-screen place-items-center bg-base-200">
+    <div class="w-full max-w-md p-6 bg-base-100 rounded-2xl shadow-lg">
+        <div class="grid grid-cols-3 items-center">
+            <a
+                href={getRelativeLocaleUrl(lang, "")}
+                class="text-primary hover:underline flex items-center"
+            >
+                <Icon name="left-arr" class="w-6 h-6 mr-2" />
+            </a>
+            <h1 class="text-3xl font-bold text-center">{t("auth.signin")}</h1>
+            <div class="flex justify-end">
+                <Theme />
+            </div>
+        </div>
+
+        <p class="text-center mt-2 text-sm">
+            {t("auth.newHere")} <a href={getRelativeLocaleUrl(lang, tRoute("signup"))} class="text-primary hover:underline"
+                >{t("auth.createAccount")}</a
+            >
+        </p>
+
+        <form action="/api/auth/signin" method="post" class="mt-6 space-y-4">
+            <div>
+                <label for="email" class="block text-sm font-medium"
+                    >{t("auth.email")}</label
+                >
+                <input
+                    type="email"
+                    name="email"
+                    id="email"
+                    placeholder={t("auth.email")}
+                    class="input input-bordered w-full mt-1"
+                    required
+                />
+            </div>
+
+            <div>
+                <label for="password" class="block text-sm font-medium"
+                    >{t("auth.password")}</label
+                >
+                <input
+                    type="password"
+                    name="password"
+                    id="password"
+                    placeholder={t("auth.password")}
+                    class="input input-bordered w-full mt-1"
+                    required
+                />
+            </div>
+
+            <a href={getRelativeLocaleUrl(lang, "")} class="text-primary hover:underline">{t("auth.forgotPassword")}</a
+            >
+
+            <button type="submit" class="btn btn-primary w-full">{t("auth.signin")}</button>
+        </form>
+    </div>
+</div>

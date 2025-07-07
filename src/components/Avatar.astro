@@ -1,0 +1,32 @@
+---
+import { Icon } from 'astro-icon/components';
+import { getLangFromUrl, useTranslations, useTranslationsRoute } from "@/i18n/utils";
+import { getRelativeLocaleUrl } from "astro:i18n";
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const tRoute = useTranslationsRoute(lang);
+
+const user = Astro.locals.user;
+---
+
+<details class="dropdown dropdown-end">
+    <summary role="button" class="btn btn-ghost btn-circle avatar">
+        <div class="w-10 rounded-full">
+            { user ? (
+                <img alt="profile picture" src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"/>
+            ) : (
+                <Icon name="person_fill" class="w-full h-full"/>
+            )}
+        </div>
+    </summary>
+    <ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow">
+        { user ? (
+            <li><a href={getRelativeLocaleUrl(lang, tRoute("dashboard"))}>{t("auth.dashboard")}</a></li>
+            <li><a href="/api/auth/signout">{t("auth.signout")}</a></li>
+        ) : (
+            <li><a href={getRelativeLocaleUrl(lang, tRoute("signin"))}>{t("auth.signin")}</a></li>
+            <li><a href={getRelativeLocaleUrl(lang, tRoute("signup"))}>{t("auth.signup")}</a></li>
+        )}
+    </ul>
+</details>

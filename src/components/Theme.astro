@@ -1,0 +1,30 @@
+---
+import { Icon } from 'astro-icon/components';
+---
+
+<label class="swap swap-rotate">
+    <input id="themeToggle" type="checkbox" class="theme-controller" value="synthwave" />
+    
+    <Icon name="sun" class="swap-on h-10 w-10 fill-current"/>
+    <Icon name="moon" class="swap-off h-10 w-10 fill-current"/>
+</label>
+
+<script is:inline>
+    document.addEventListener('DOMContentLoaded', () => {
+        const themeToggle = document.getElementById('themeToggle');
+        const currentTheme = localStorage.getItem('theme') || 'light';
+
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        themeToggle.checked = currentTheme === 'dark';
+
+        themeToggle.addEventListener('change', () => {
+            if (themeToggle.checked) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light');
+            }
+        });
+    });
+</script>

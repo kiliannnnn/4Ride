@@ -1,0 +1,30 @@
+---
+import { Icon } from 'astro-icon/components';
+
+import Lang from "@/components/Lang.astro";
+import Nav from "@/components/Nav.astro";
+import Avatar from "@/components/Avatar.astro";
+import Theme from "@/components/Theme.astro";
+---
+
+<div class="navbar bg-base-100">
+    <div class="navbar-start">
+        <details class="dropdown">
+            <summary role="button" class="btn btn-ghost lg:hidden">
+                <Icon name="menu" class="w-6 h-6"/>
+            </summary>
+            <div class="dropdown-content">
+                <Nav />
+            </div>
+        </details>
+        <a class="btn btn-ghost text-xl">Astronomia</a>
+    </div>
+    <div class="navbar-center hidden lg:flex">
+        <Nav />
+    </div>
+    <div class="navbar-end space-x-3">
+        <Lang />
+        <Theme />
+        <Avatar />
+    </div>
+</div>
