@@ -6,8 +6,6 @@ interface AskOllamaProps {
 
 type SupportedLang = 'en' | 'fr' | 'es' | 'jp';
 
-const GEONAMES_USERNAME = 'kiliannnnn';
-
 const askOllamaUi = {
   en: {
     title: "Ask Ollama (phi4)",
@@ -110,6 +108,24 @@ function generateGPX(waypoints: { lat: number, lon: number, name: string }[]) {
   return `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="4Ride" xmlns="http://www.topografix.com/GPX/1/1">\n  <rte>\n    ${waypoints.map(wp => `\n      <rtept lat="${wp.lat}" lon="${wp.lon}">\n        <name>${wp.name}</name>\n      </rtept>`).join('')}\n  </rte>\n</gpx>`;
 }
 
+function generateKML(waypoints: { lat: number, lon: number, name: string }[], name = 'Itinerary') {
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>${name}</name>
+    <Placemark>
+      <name>${name}</name>
+      <LineString>
+        <tessellate>1</tessellate>
+        <coordinates>
+          ${waypoints.map(wp => `${wp.lon},${wp.lat},0`).join('\n          ')}
+        </coordinates>
+      </LineString>
+    </Placemark>
+  </Document>
+</kml>`;
+}
+
 function downloadGPX(gpxString: string, filename = 'itinerary.gpx') {
   const blob = new Blob([gpxString], { type: 'application/gpx+xml' });
   const url = URL.createObjectURL(blob);
@@ -143,6 +159,88 @@ function loadGoogleMaps(apiKey: string, callback: () => void) {
   document.body.appendChild(script);
 }
 
+// Add this helper to decode Google polyline
+function decodePolyline(encoded: string) {
+  let points = [];
+  let index = 0, len = encoded.length;
+  let lat = 0, lng = 0;
+  while (index < len) {
+    let b, shift = 0, result = 0;
+    do {
+      b = encoded.charCodeAt(index++) - 63;
+      result |= (b & 0x1f) << shift;
+      shift += 5;
+    } while (b >= 0x20);
+    let dlat = ((result & 1) ? ~(result >> 1) : (result >> 1));
+    lat += dlat;
+    shift = 0;
+    result = 0;
+    do {
+      b = encoded.charCodeAt(index++) - 63;
+      result |= (b & 0x1f) << shift;
+      shift += 5;
+    } while (b >= 0x20);
+    let dlng = ((result & 1) ? ~(result >> 1) : (result >> 1));
+    lng += dlng;
+    points.push({ lat: lat / 1e5, lon: lng / 1e5, name: '' });
+  }
+  return points;
+}
+
+function GoogleDirectionsDemo() {
+  let mapRef: HTMLDivElement | undefined;
+  onMount(() => {
+    function initMap() {
+      const directionsService = new (window as any).google.maps.DirectionsService();
+      const directionsRenderer = new (window as any).google.maps.DirectionsRenderer();
+      const map = new (window as any).google.maps.Map(mapRef, {
+        zoom: 7,
+        center: { lat: 48.85, lng: 2.35 }, // Paris
+      });
+      directionsRenderer.setMap(map);
+      directionsService.route({
+        origin: { query: 'Paris, France' },
+        destination: { query: 'Lyon, France' },
+        travelMode: (window as any).google.maps.TravelMode.DRIVING,
+      }, (response: any, status: string) => {
+        if (status === 'OK') {
+          directionsRenderer.setDirections(response);
+          // Extract polyline points
+          const route = response.routes[0].overview_path;
+          // console.log('Demo route polyline points:');
+          // route.forEach((point: any) => {
+          //   console.log(`${point.lng()},${point.lat()},0`);
+          // });
+        } else {
+          window.alert('Directions request failed due to ' + status);
+        }
+      });
+    }
+    loadGoogleMaps(import.meta.env.PUBLIC_GOOGLE_MAPS_API_KEY as string, initMap);
+  });
+  return <div ref={el => (mapRef = el as HTMLDivElement)} style={{ height: '400px', width: '100%' }} />;
+}
+
+// Add Google Places Autocomplete and Details fetchers
+async function fetchGooglePlaceSuggestions(input: string, sessionToken: string) {
+  // Call backend proxy to avoid CORS
+  const res = await fetch('/api/places-autocomplete', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ input, sessionToken })
+  });
+  const data = await res.json();
+  return data.predictions || [];
+}
+
+async function fetchGooglePlaceDetails(placeId: string, sessionToken: string) {
+  const apiKey = import.meta.env.PUBLIC_GOOGLE_MAPS_API_KEY;
+  const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=geometry,name,formatted_address&key=${apiKey}&sessiontoken=${sessionToken}`;
+  const res = await fetch(url);
+  const data = await res.json();
+  return data.result;
+}
+
 export default function AskOllama(props: AskOllamaProps) {
   const [place, setPlace] = createSignal('');
   const [placeDetails, setPlaceDetails] = createSignal<any | null>(null);
@@ -165,32 +263,48 @@ export default function AskOllama(props: AskOllamaProps) {
   let mapRef: HTMLDivElement | undefined;
   let map: any = null;
   let marker: any = null;
+  const [sessionToken, setSessionToken] = createSignal('');
 
-  // Fetch city suggestions from GeoNames
+  // Generate a new session token for each new search session
+  function newSessionToken() {
+    // Simple random string for session token
+    return Math.random().toString(36).substring(2) + Date.now().toString(36);
+  }
+
+  // Fetch city suggestions from Google Places
   const fetchSuggestions = async (query: string) => {
     if (!query) {
       setSuggestions([]);
       setDropdownOpen(false);
       return;
     }
-    const url = `https://secure.geonames.org/searchJSON?name_startsWith=${encodeURIComponent(query)}&featureClass=P&maxRows=5&username=${GEONAMES_USERNAME}&lang=${lang}`;
-    const res = await fetch(url);
-    const data = await res.json();
-    setSuggestions(data.geonames || []);
-    setDropdownOpen((data.geonames || []).length > 0);
+    if (!sessionToken()) setSessionToken(newSessionToken());
+    const results = await fetchGooglePlaceSuggestions(query, sessionToken());
+    setSuggestions(results);
+    setDropdownOpen(results.length > 0);
   };
 
+  // Handle input change for autocomplete
   const handleInput = (e: any) => {
     setPlace(e.target.value);
     setPlaceDetails(null);
+    if (!sessionToken()) setSessionToken(newSessionToken());
     fetchSuggestions(e.target.value);
   };
 
-  const handleSuggestionClick = (s: any) => {
-    setPlace(`${s.name}, ${s.countryName}${s.adminName1 ? ', ' + s.adminName1 : ''}`);
-    setPlaceDetails(s);
+  // Handle suggestion click: fetch details and set placeDetails
+  const handleSuggestionClick = async (s: any) => {
+    setPlace(s.description);
+    const details = await fetchGooglePlaceDetails(s.place_id, sessionToken());
+    setPlaceDetails({
+      name: details.name,
+      address: details.formatted_address,
+      lat: details.geometry.location.lat,
+      lng: details.geometry.location.lng,
+    });
     setSuggestions([]);
     setDropdownOpen(false);
+    setSessionToken(''); // Reset session token for next search
   };
 
   // Close dropdown when clicking outside
@@ -215,7 +329,7 @@ export default function AskOllama(props: AskOllamaProps) {
     setResponse('');
     try {
       const placeString = placeDetails()
-        ? `${placeDetails().name}, ${placeDetails().countryName}${placeDetails().adminName1 ? ', ' + placeDetails().adminName1 : ''} (${placeDetails().lat}, ${placeDetails().lng})`
+        ? `${placeDetails().name}, ${placeDetails().address} (${placeDetails().lat}, ${placeDetails().lng})`
         : place();
       const res = await fetch('/api/ollama', {
         method: 'POST',
@@ -252,34 +366,68 @@ export default function AskOllama(props: AskOllamaProps) {
 
   // Parse AI answer for waypoints and geocode them
   createEffect(async () => {
-    if (!response()) {
+    // Only run when response is non-empty and loading is false (AI finished streaming)
+    if (!response() || loading()) {
       setWaypoints([]);
+      setParsing(false);
       return;
     }
     setParsing(true);
-    // Parse answer for city/road names (split by > or ->)
-    const steps = response().split(/>|->/).map(s => s.trim()).filter(Boolean);
-    // Geocode each step (city) using GeoNames if not already coordinates
-    const geocoded: { lat: number, lon: number, name: string }[] = [];
-    for (const step of steps) {
-      // If already in (lat, lon) format, extract
-      const match = step.match(/\(([-\d.]+),\s*([-\d.]+)\)/);
-      if (match) {
-        geocoded.push({ lat: parseFloat(match[1]), lon: parseFloat(match[2]), name: step.replace(/\s*\(.*\)$/, '') });
-        continue;
-      }
-      // Otherwise, geocode using GeoNames
-      const url = `https://secure.geonames.org/searchJSON?q=${encodeURIComponent(step)}&maxRows=1&username=${GEONAMES_USERNAME}`;
-      try {
-        const res = await fetch(url);
-        const data = await res.json();
-        if (data.geonames && data.geonames.length > 0) {
-          const g = data.geonames[0];
-          geocoded.push({ lat: parseFloat(g.lat), lon: parseFloat(g.lng), name: step });
-        }
-      } catch {}
+    console.log('Parsing itinerary from AI response...');
+    console.log('AI response:', response());
+    let names: string[] = [];
+    let raw = response().trim();
+    // Remove Markdown code block if present
+    if (raw.startsWith('```')) {
+      raw = raw.replace(/^```[a-zA-Z]*\n?/, '').replace(/```$/, '').trim();
     }
-    setWaypoints(geocoded);
+    try {
+      names = JSON.parse(raw);
+      if (!Array.isArray(names)) throw new Error('Not an array');
+    } catch (err) {
+      setWaypoints([]);
+      setParsing(false);
+      console.log('Failed to parse AI response as JSON array:', err);
+      return;
+    }
+    // Geocode each name using Google Places backend proxy
+    const geocoded: { lat: number, lon: number, name: string }[] = [];
+    for (const name of names) {
+      try {
+        const res = await fetch('/api/places-geocode', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name })
+        });
+        const data = await res.json();
+        if (data.lat && data.lon) {
+          geocoded.push({ lat: data.lat, lon: data.lon, name: data.name });
+        } else {
+          console.log('No Google Places result for', name);
+        }
+      } catch (err) {
+        console.log('Geocoding error for', name, err);
+      }
+    }
+    // If we have at least two cities, fetch the route from Google Directions
+    if (geocoded.length > 1) {
+      try {
+        const res = await fetch('/api/directions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ waypoints: geocoded })
+        });
+        const data = await res.json();
+        if (data.points) {
+          setWaypoints(data.points);
+        }
+      } catch (err) {
+        setWaypoints(geocoded);
+        console.log('Error fetching route from Google Directions:', err);
+      }
+    } else {
+      setWaypoints(geocoded);
+    }
     setParsing(false);
   });
 
@@ -351,7 +499,7 @@ export default function AskOllama(props: AskOllamaProps) {
                     class="p-2 hover:bg-base-200 cursor-pointer"
                     onMouseDown={() => handleSuggestionClick(s)}
                   >
-                    {s.name}, {s.countryName}{s.adminName1 ? ', ' + s.adminName1 : ''}
+                    {s.description}
                   </a>
                 </li>
               ))}
@@ -449,19 +597,45 @@ export default function AskOllama(props: AskOllamaProps) {
         {parsing() && (
           <div class="flex items-center gap-2 mt-4"><span class="loading loading-spinner loading-md text-info"></span> <span>Calculating itinerary...</span></div>
         )}
-        {waypoints().length > 1 && !parsing() && (
-          <button
-            class="btn btn-secondary mt-4 w-full"
-            onClick={() => downloadGPX(generateGPX(waypoints()))}
-          >
-            Export as GPX
-          </button>
+        {waypoints().length > 0 && !parsing() && (
+          <>
+            <button
+              class="btn btn-secondary mt-4 w-full"
+              onClick={() => {
+                const gpx = generateGPX(waypoints());
+                downloadGPX(gpx);
+              }}
+            >
+              Export as GPX
+            </button>
+            <button
+              class="btn btn-accent mt-2 w-full"
+              onClick={() => {
+                const kml = generateKML(waypoints());
+                const blob = new Blob([kml], { type: 'application/vnd.google-earth.kml+xml' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'itinerary.kml';
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+            >
+              Export as KML
+            </button>
+          </>
         )}
       </div>
       <div class="w-full md:w-1/2 flex flex-col items-center">
         <h2 class="text-xl font-bold mb-2">Map</h2>
         <div class="w-full" style={{ 'max-width': '500px' }}>
           <div ref={el => (mapRef = el as HTMLDivElement)} style={{ height: '400px', width: '100%' }} />
+        </div>
+      </div>
+      <div class="w-full md:w-1/2 flex flex-col items-center mt-8">
+        <h2 class="text-xl font-bold mb-2">Google Directions Demo</h2>
+        <div class="w-full" style={{ 'max-width': '500px' }}>
+          <GoogleDirectionsDemo />
         </div>
       </div>
     </div>

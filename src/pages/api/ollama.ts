@@ -28,7 +28,7 @@ function buildPrompt({ place, days, hours, features, avoid, style, lang, roundTr
   else if (lang === 'jp') langInstruction = 'Answer in Japanese.';
   else langInstruction = 'Answer in English.';
 
-  return `Suggest a short idea for a motorcycle ride${durationText ? ' (' + durationText + ')' : ''} around ${place}${featuresText ? ', passing by ' + featuresText : ''}${avoidText ? ', avoiding ' + avoidText : ''}${styleText ? ', style ' + styleText : ''}${roundTripText}. The answer must be short, in the desired language, and must list the main roads and cities to link in order, as this will be used to generate a GPX file later. ${langInstruction}`;
+  return `Suggest a short idea for a motorcycle ride${durationText ? ' (' + durationText + ')' : ''} around ${place}${featuresText ? ', passing by ' + featuresText : ''}${avoidText ? ', avoiding ' + avoidText : ''}${styleText ? ', style ' + styleText : ''}${roundTripText}. The answer must be ONLY a valid JSON array (no markdown, no explanation, no code block, just the JSON array): ["City or Town Name", ...]. List only the main cities or towns to link in order (no roads, forests, or other features), as this will be used to generate a GPX file. Do not include coordinates. ${langInstruction}`;
 }
 
 export const POST: APIRoute = async ({ request }) => {
@@ -38,12 +38,12 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response(JSON.stringify({ error: 'Missing place or duration' }), { status: 400 });
     }
     const prompt = buildPrompt({ place, days, hours, features, avoid, style, lang, roundTrip });
-    console.log('[OLLAMA PROMPT]', prompt); // Debug log
+    console.log(prompt);
     const ollamaRes = await fetch('http://localhost:11434/api/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'phi4',
+        model: 'mistral',
         prompt,
         stream: true
       })
