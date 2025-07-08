@@ -44,7 +44,7 @@ In order to avoid warnings in this file, create a settings.json in .vscode folde
     --color-warning-content: oklch(21% 0.006 56.043);
     --color-error: oklch(64% 0.246 16.439);
     --color-error-content: oklch(21% 0.006 56.043);
-    --radius-selector: 1rem;
+    --radius-selector: 0.5rem;
     --radius-field: 1rem;
     --radius-box: 1rem;
     --size-selector: 0.25rem;
@@ -80,7 +80,7 @@ In order to avoid warnings in this file, create a settings.json in .vscode folde
     --color-warning-content: oklch(26% 0.079 36.259);
     --color-error: oklch(70% 0.191 22.216);
     --color-error-content: oklch(25% 0.092 26.042);
-    --radius-selector: 1rem;
+    --radius-selector: 0.5rem;
     --radius-field: 1rem;
     --radius-box: 1rem;
     --size-selector: 0.25rem;

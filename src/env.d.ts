@@ -1,10 +1,12 @@
 interface ImportMetaEnv {
-  // TODO : Comment out the ones you don't use
-  readonly SUPABASE_URL: string
-  readonly SUPABASE_ANON_KEY: string
-
   readonly PUBLIC_SUPABASE_URL: string
   readonly PUBLIC_SUPABASE_ANON_KEY: string
+  readonly ADMIN_WHITELIST: string
+  readonly PUBLIC_GOOGLE_MAPS_KEY: string
+ 
+  readonly PUBLIC_OLLAMA_IP: string
+  readonly PUBLIC_OLLAMA_PORT: string
+  readonly PUBLIC_OLLAMA_MODEL: string
 }
 
 interface ImportMeta {

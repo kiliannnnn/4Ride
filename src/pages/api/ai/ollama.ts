@@ -39,11 +39,14 @@ export const POST: APIRoute = async ({ request }) => {
     }
     const prompt = buildPrompt({ place, days, hours, features, avoid, style, lang, roundTrip });
     console.log(prompt);
-    const ollamaRes = await fetch('http://localhost:11434/api/generate', {
+    const ollamaIp = import.meta.env.PUBLIC_OLLAMA_IP;
+    const ollamaPort = import.meta.env.PUBLIC_OLLAMA_PORT;
+    const ollamaModel = import.meta.env.PUBLIC_OLLAMA_MODEL;
+    const ollamaRes = await fetch(`http://${ollamaIp}:${ollamaPort}/api/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'mistral',
+        model: ollamaModel,
         prompt,
         stream: true
       })
