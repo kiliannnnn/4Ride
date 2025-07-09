@@ -10,7 +10,7 @@ const styleLabels: Record<string, string> = {
   chill: 'chill', normal: 'normal', fast: 'fast boy',
 };
 
-function buildPrompt({ place, days, hours, features, avoid, style, lang, roundTrip }: any) {
+function buildPrompt({ place, days, hours, features, avoid, style, langInstruction, roundTrip }: any) {
   let durationText = '';
   if (days && hours) durationText = `${days} days and ${hours} hours`;
   else if (days) durationText = `${days} days`;
@@ -22,11 +22,6 @@ function buildPrompt({ place, days, hours, features, avoid, style, lang, roundTr
   let roundTripText = '';
   if (roundTrip === false) roundTripText = ' for a one-way trip';
   else if (roundTrip === true) roundTripText = ' for a round trip';
-  let langInstruction = '';
-  if (lang === 'fr') langInstruction = 'Answer in French.';
-  else if (lang === 'es') langInstruction = 'Answer in Spanish.';
-  else if (lang === 'jp') langInstruction = 'Answer in Japanese.';
-  else langInstruction = 'Answer in English.';
 
   return `Suggest a short idea for a motorcycle ride${durationText ? ' (' + durationText + ')' : ''} around ${place}${featuresText ? ', passing by ' + featuresText : ''}${avoidText ? ', avoiding ' + avoidText : ''}${styleText ? ', style ' + styleText : ''}${roundTripText}. The answer must be ONLY a valid JSON array (no markdown, no explanation, no code block, just the JSON array): ["City or Town Name", ...]. List only the main cities or towns to link in order (no roads, forests, or other features), as this will be used to generate a GPX file. Do not include coordinates. ${langInstruction}`;
 }
@@ -43,46 +38,23 @@ export const POST: APIRoute = async ({ request }) => {
     else langInstruction = 'Answer in English.';
 
     if (mode === 'natural-convo') {
-      const { history, itinerary, message, lang } = body;
-      // Build a conversational prompt with advanced trip planning instructions
-      let langInstruction = '';
-      if (lang === 'fr') langInstruction = 'Réponds en français.';
-      else if (lang === 'es') langInstruction = 'Responde en español.';
-      else if (lang === 'jp') langInstruction = '日本語で答えてください。';
-      else langInstruction = 'Answer in English.';
+      const { history, itinerary, message } = body;
       const convo = (history || []).map((m: any) => `${m.role === 'user' ? 'User' : 'AI'}: ${m.text}`).join('\n');
       const itineraryText = Array.isArray(itinerary) && itinerary.length > 0 ? `The current itinerary is: [${itinerary.map((c: string) => '"' + c + '"').join(', ')}].` : '';
       prompt = `You are an expert motorcycle road trip planner.\n
-Your goal is to generate logical, enjoyable, and smooth motorcycle loops of 150-200 km, lasting 3-4 hours (excluding breaks), starting and ending at the same city. Prioritize twisty, mountain, and scenic roads. Integrate as many accessible mountain passes (e.g., Semnoz, Forclaz, etc.) as possible. Avoid highways, long straight national roads, and dense urban areas. Never repeat the same road unless absolutely necessary. Avoid illogical loops or U-turns. Favor routes with a good sequence of curves and little traffic.\n
-${itineraryText}\n${convo}\nUser: ${message}\n
-Suggest multiple (at least 2) different itineraries, and for each, present the pros and cons.\n
-For each itinerary, at the end of your answer, output ONLY the list of main cities or towns to pass through, in order, as a valid JSON array (no markdown, no explanation, no code block, just the JSON array), clearly marked as 'Cities for itinerary 1:' and 'Cities for itinerary 2:' etc.\n${langInstruction}`;
-    } else if (mode === 'nlp-convo') {
-      const { history, itinerary, message, lang } = body;
-      // Build a conversational prompt
-      let langInstruction = '';
-      if (lang === 'fr') langInstruction = 'Answer in French.';
-      else if (lang === 'es') langInstruction = 'Answer in Spanish.';
-      else if (lang === 'jp') langInstruction = 'Answer in Japanese.';
-      else langInstruction = 'Answer in English.';
-      const convo = (history || []).map((m: any) => `${m.role === 'user' ? 'User' : 'AI'}: ${m.text}`).join('\n');
-      const itineraryText = Array.isArray(itinerary) && itinerary.length > 0 ? `The current itinerary is: [${itinerary.map((c: string) => '"' + c + '"').join(', ')}].` : '';
-      prompt = `You are a motorcycle trip planner.\n${itineraryText}\n${convo}\nUser: ${message}\n${langInstruction}\nReturn ONLY the new itinerary as a JSON array of city or town names, no explanation, no markdown, no code block.`;
-    } else if (mode === 'nlp') {
-      const { question, lang } = body;
-      if (!question) {
-        return new Response(JSON.stringify({ error: 'Missing question' }), { status: 400 });
-      }
-      // System instruction for consistent output
-      prompt = `You are a motorcycle trip planner. ${question.trim()}\nThe answer must be ONLY a valid JSON array (no markdown, no explanation, no code block, just the JSON array): [\"City or Town Name\", ...]. List only the main cities or towns to link in order (no roads, forests, or other features), as this will be used to generate a GPX file. Do not include coordinates.\n${langInstruction}`;
-    } else {
+        Your goal is to generate logical, enjoyable, and smooth motorcycle loops of 150-200 km, lasting 3-4 hours (excluding breaks), starting and ending at the same city. Prioritize twisty, mountain, and scenic roads. Integrate as many accessible mountain passes (e.g., Semnoz, Forclaz, etc.) as possible. Avoid highways, long straight national roads, and dense urban areas. Never repeat the same road unless absolutely necessary. Avoid illogical loops or U-turns. Favor routes with a good sequence of curves and little traffic.\n
+        ${itineraryText}\n${convo}\nUser: ${message}\n
+        Suggest multiple (at least 2) different itineraries, and for each, present the pros and cons.\n
+        For each itinerary, at the end of your answer, output ONLY the list of main cities or towns to pass through, in order, as a valid JSON array (no markdown, no explanation, no code block, just the JSON array), clearly marked as 'Cities for itinerary 1:' and 'Cities for itinerary 2:' etc.\n${langInstruction}`;
+    } else if (mode === 'form') {
       const { place, days, hours, features, avoid, style, lang, roundTrip } = body;
       if (!place || (!days && !hours)) {
         return new Response(JSON.stringify({ error: 'Missing place or duration' }), { status: 400 });
       }
-      prompt = buildPrompt({ place, days, hours, features, avoid, style, lang, roundTrip });
+      prompt = buildPrompt({ place, days, hours, features, avoid, style, langInstruction, roundTrip });
     }
     console.log(prompt);
+
     const ollamaIp = import.meta.env.PUBLIC_OLLAMA_IP;
     const ollamaPort = import.meta.env.PUBLIC_OLLAMA_PORT;
     const ollamaModel = import.meta.env.PUBLIC_OLLAMA_MODEL;
@@ -99,7 +71,6 @@ For each itinerary, at the end of your answer, output ONLY the list of main citi
       const errorText = await ollamaRes.text();
       return new Response(JSON.stringify({ error: errorText }), { status: 500 });
     }
-    // Stream Ollama's response to the client
     const stream = new ReadableStream({
       async start(controller) {
         const reader = ollamaRes.body!.getReader();
@@ -118,7 +89,7 @@ For each itinerary, at the end of your answer, output ONLY the list of main citi
                   fullText += json.response;
                   controller.enqueue(json.response);
                 }
-              } catch {}
+              } catch { }
             }
           }
         }

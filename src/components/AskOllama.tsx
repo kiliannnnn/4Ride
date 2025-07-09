@@ -1,7 +1,7 @@
 import { createSignal, onCleanup, createEffect, onMount, Show } from 'solid-js';
 import { loadGoogleMaps } from '@/lib/services/googleServices';
 import { generateGPX, generateKML } from '@/lib/utils';
-import { t, askOllamaUi, FEATURES, AVOID, STYLES } from '@/lib/utils';
+import { t, askOllamaUi, FEATURES, AVOID, STYLES, newSessionToken } from '@/lib/utils';
 import type { lang } from '@/lib/utils';
 
 interface AskOllamaProps {
@@ -42,13 +42,12 @@ export default function AskOllama(props: AskOllamaProps) {
   const [availableItineraries, setAvailableItineraries] = createSignal<{ cities: string[], label: string }[]>([]);
   const [selectedItineraryIdx, setSelectedItineraryIdx] = createSignal(0);
   const [userLocation, setUserLocation] = createSignal<{ lat: number, lon: number, city?: string } | null>(null);
-  // On mount, ask for geolocation
+
   onMount(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(async pos => {
         const lat = pos.coords.latitude;
         const lon = pos.coords.longitude;
-        // Try to reverse geocode to get city name
         try {
           const res = await fetch('/api/google/places/geocode', {
             method: 'POST',
@@ -68,14 +67,8 @@ export default function AskOllama(props: AskOllamaProps) {
     "I want to go on a short ride around my location",
     "Suggest a scenic mountain loop",
     "Show me a route with lakes and forests",
-    "Find a route with the least traffic",
     "I want a challenging ride with mountain passes"
   ];
-
-  // Generate a new session token for each new search session
-  function newSessionToken() {
-    return Math.random().toString(36).substring(2) + Date.now().toString(36);
-  }
 
   // Fetch city suggestions from Google Places
   const fetchSuggestions = async (query: string) => {
@@ -129,7 +122,7 @@ export default function AskOllama(props: AskOllamaProps) {
     setArr(arr.includes(key) ? arr.filter(k => k !== key) : [...arr, key]);
   };
 
-  // Parse AI answer for waypoints and geocode them (for NLP tab)
+  // Parse AI answer for waypoints and geocode them (for natural tab)
   createEffect(async () => {
     // Only run if itinerary changed
     if (itinerary().length === 0 || JSON.stringify(itinerary()) === JSON.stringify(lastItinerary())) {
@@ -455,28 +448,7 @@ export default function AskOllama(props: AskOllamaProps) {
                     class="badge badge-outline badge-lg cursor-pointer px-3 py-2 rounded-full text-xs hover:bg-primary hover:text-primary-content transition"
                     onClick={async () => {
                       if (needsLocation && !userLocation()) {
-                        if (window.confirm('This prompt needs your location. Do you allow access to your location?')) {
-                          if (navigator.geolocation) {
-                            navigator.geolocation.getCurrentPosition(async pos => {
-                              const lat = pos.coords.latitude;
-                              const lon = pos.coords.longitude;
-                              try {
-                                const res = await fetch('/api/google/places/geocode', {
-                                  method: 'POST',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ lat, lon })
-                                });
-                                const data = await res.json();
-                                setUserLocation({ lat, lon, city: data.name || undefined });
-                                let locPrompt = prompt.replace('my location', data.name || `${lat.toFixed(3)},${lon.toFixed(3)}`);
-                                sendPrompt(locPrompt);
-                              } catch {
-                                let locPrompt = prompt.replace('my location', `${lat.toFixed(3)},${lon.toFixed(3)}`);
-                                sendPrompt(locPrompt);
-                              }
-                            }, () => {/* denied */});
-                          }
-                        }
+                        alert('Location access is required for this prompt. Please enable location access in your browser settings.');
                         return;
                       }
                       if (needsLocation && userLocation()) {

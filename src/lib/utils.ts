@@ -119,3 +119,7 @@ export function generateKML(waypoints: { lat: number, lon: number, name: string 
     </Document>
   </kml>`;
 }
+
+export function newSessionToken() {
+  return Math.random().toString(36).substring(2) + Date.now().toString(36);
+}
