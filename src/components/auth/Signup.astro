@@ -7,39 +7,47 @@ import {
     useTranslations,
     useTranslationsRoute,
 } from "@/i18n/utils";
-import { getRelativeLocaleUrl } from 'astro:i18n';
+import { getRelativeLocaleUrl } from "astro:i18n";
 
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 const tRoute = useTranslationsRoute(lang);
 ---
+
 <script is:inline>
-  function handleSignup(e) {
-    e.preventDefault();
-    const form = e.target;
-    const data = new FormData(form);
-    fetch('/api/auth/signup', {
-      method: 'POST',
-      body: data,
-    })
-      .then(async res => {
-        if (res.ok) {
-          window.location.href = '/';
-        } else {
-          const errorMsg = (await res.text()) || 'Sign up failed';
-          form.querySelector('.auth-error').textContent = errorMsg;
-        }
-      })
-      .catch(() => {
-        form.querySelector('.auth-error').textContent = 'Sign up failed';
-      });
-  }
+    function handleSignup(e) {
+        e.preventDefault();
+        const form = e.target;
+        const data = new FormData(form);
+        fetch("/api/auth/signup", {
+            method: "POST",
+            body: data,
+            headers: {
+                Accept: "application/json",
+            },
+        })
+            .then(async (res) => {
+                if (res.ok) {
+                    window.location.href = "/";
+                } else {
+                    const errorMsg = (await res.text()) || "Sign up failed";
+                    form.querySelector(".auth-error").textContent = errorMsg;
+                }
+            })
+            .catch(() => {
+                form.querySelector(".auth-error").textContent =
+                    "Sign up failed";
+            });
+    }
 </script>
 
 <div class="grid min-h-screen place-items-center bg-base-200">
     <div class="w-full max-w-md p-6 bg-base-100 rounded-2xl shadow-lg">
         <div class="grid grid-cols-3 items-center">
-            <a href={getRelativeLocaleUrl(lang, "")} class="text-primary hover:underline flex items-center">
+            <a
+                href={getRelativeLocaleUrl(lang, "")}
+                class="text-primary hover:underline flex items-center"
+            >
                 <Icon name="left-arr" class="w-6 h-6 mr-2" />
             </a>
             <h1 class="text-3xl font-bold text-center">{t("auth.signup")}</h1>
@@ -49,7 +57,8 @@ const tRoute = useTranslationsRoute(lang);
         </div>
 
         <p class="text-center mt-2 text-sm">
-            {t("auth.alreadyHaveAccount")} <a
+            {t("auth.alreadyHaveAccount")}
+            <a
                 href={getRelativeLocaleUrl(lang, tRoute("signin"))}
                 class="text-primary hover:underline">{t("auth.signin")}</a
             >
@@ -99,7 +108,9 @@ const tRoute = useTranslationsRoute(lang);
             </div>
 
             <div class="auth-error text-error text-sm mb-2"></div>
-            <button type="submit" class="btn btn-primary w-full">{t("auth.signup")}</button>
+            <button type="submit" class="btn btn-primary w-full"
+                >{t("auth.signup")}</button
+            >
         </form>
     </div>
 </div>

@@ -41,6 +41,36 @@ export default function AskOllama(props: AskOllamaProps) {
   const [lastItinerary, setLastItinerary] = createSignal<string[]>([]); // for map update comparison
   const [availableItineraries, setAvailableItineraries] = createSignal<{ cities: string[], label: string }[]>([]);
   const [selectedItineraryIdx, setSelectedItineraryIdx] = createSignal(0);
+  const [userLocation, setUserLocation] = createSignal<{ lat: number, lon: number, city?: string } | null>(null);
+  // On mount, ask for geolocation
+  onMount(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(async pos => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        // Try to reverse geocode to get city name
+        try {
+          const res = await fetch('/api/google/places/geocode', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ lat, lon })
+          });
+          const data = await res.json();
+          setUserLocation({ lat, lon, city: data.name || undefined });
+        } catch {
+          setUserLocation({ lat, lon });
+        }
+      });
+    }
+  });
+
+  const autoPrompts = [
+    "I want to go on a short ride around my location",
+    "Suggest a scenic mountain loop",
+    "Show me a route with lakes and forests",
+    "Find a route with the least traffic",
+    "I want a challenging ride with mountain passes"
+  ];
 
   // Generate a new session token for each new search session
   function newSessionToken() {
@@ -276,6 +306,73 @@ export default function AskOllama(props: AskOllamaProps) {
     });
   });
 
+  // Helper to send a prompt to the AI
+  async function sendPrompt(prompt: string) {
+    setNaturalInput('');
+    setIsStreaming(true);
+    setResponseNatural('');
+    setErrorNatural('');
+    setChatMessages([...chatMessages(), { role: 'user', text: prompt }]);
+    try {
+      const res = await fetch('/api/ai/ollama', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: 'natural-convo',
+          history: chatMessages(),
+          itinerary: itinerary(),
+          message: prompt,
+          lang
+        })
+      });
+      if (!res.body) throw new Error('No response body');
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let fullText = '';
+      setResponseNatural('');
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        fullText += chunk;
+        setResponseNatural(fullText);
+      }
+      // Parse all JSON arrays in the response
+      const found: { cities: string[], label: string }[] = [];
+      const regex = /Cities for itinerary (\d+):\s*(\[[^\]]*\])/g;
+      let match;
+      while ((match = regex.exec(fullText)) !== null) {
+        try {
+          const arr = JSON.parse(match[2]);
+          if (Array.isArray(arr)) {
+            found.push({ cities: arr, label: `Itinerary ${match[1]}` });
+          }
+        } catch {}
+      }
+      if (found.length === 0) {
+        const arrMatch = fullText.match(/\[([^\]]+)\]/);
+        if (arrMatch) {
+          try {
+            const arr = JSON.parse(arrMatch[0]);
+            if (Array.isArray(arr)) {
+              found.push({ cities: arr, label: 'Itinerary 1' });
+            }
+          } catch {}
+        }
+      }
+      setAvailableItineraries(found);
+      if (found.length > 0) {
+        setSelectedItineraryIdx(0);
+        setItinerary(found[0].cities);
+      }
+      setChatMessages(msgs => [...msgs, { role: 'ai', text: fullText }]);
+    } catch (err: any) {
+      setErrorNatural(err.message || 'Unknown error');
+    } finally {
+      setIsStreaming(false);
+    }
+  }
+
   return (
     <div class="relative w-full overflow-hidden flex items-center justify-center" style={{ 'min-height': 'calc(100vh - 128px)', height: 'calc(100vh - 128px)' }}>
       {/* Background image */}
@@ -283,8 +380,8 @@ export default function AskOllama(props: AskOllamaProps) {
         <img src="/assets/images/biker.webp" alt="Background" class="w-full h-full object-cover object-center opacity-50" />
       </div>
       {/* Main card */}
-      <div class="overflow-hidden relative z-10 w-full max-w-4xl md:max-w-5xl lg:max-w-6xl p-8 md:p-0 rounded-3xl shadow-2xl bg-base-100/90 backdrop-blur-lg flex flex-col md:flex-row items-start justify-center h-full" style={{ 'max-width': '1100px', 'max-height': '90%' }}>
-        <div class="w-full md:w-1/2">
+      <div class="overflow-hidden relative z-10 w-full max-w-6xl md:max-w-7xl lg:max-w-8xl p-8 md:p-0 rounded-3xl shadow-2xl bg-base-100/90 backdrop-blur-lg flex flex-row items-stretch justify-center h-full" style={{ 'max-width': '1400px', 'max-height': '90%' }}>
+        <div class="w-full md:w-1/2 flex flex-col h-full">
           <div class="tabs tabs-lift w-full">
             <label class="tab cursor-pointer" classList={{'tab-active': activeTab() === 'natural'}}>
               <input type="radio" name="askollama_tabs" checked={activeTab() === 'natural'} onChange={() => setActiveTab('natural')} />
@@ -297,10 +394,10 @@ export default function AskOllama(props: AskOllamaProps) {
               Form
             </label>
           </div>
-          <div class="tab-content bg-base-100 border-base-300 p-6 flex flex-col h-[500px] md:h-[600px]" style={{ display: activeTab() === 'natural' ? 'flex' : 'none' }}>
+          <div class="tab-content bg-base-100 border-base-300 p-6 flex flex-col flex-1 h-full min-h-0" style={{ display: activeTab() === 'natural' ? 'flex' : 'none' }}>
             {/* Current itinerary display */}
             <Show when={availableItineraries().length > 0}>
-              <div class="mb-4">
+              <div class="mb-4 flex-shrink-0">
                 <div class="font-semibold mb-2 text-lg">Available Itineraries:</div>
                 <div class="flex flex-col gap-4">
                   {availableItineraries().map((it, idx) => (
@@ -326,17 +423,10 @@ export default function AskOllama(props: AskOllamaProps) {
                     </div>
                   ))}
                 </div>
-                <div class="mt-2 text-xs text-gray-500">Click a box to select and show on map</div>
-                <div class="mt-4">
-                  <div class="font-semibold mb-1">Current Itinerary:</div>
-                  <ol class="list-decimal list-inside text-sm">
-                    {itinerary().map((city, i) => <li>{city}</li>)}
-                  </ol>
-                </div>
               </div>
             </Show>
             {/* Chat messages */}
-            <div class="flex-1 overflow-y-auto mb-4 space-y-2 pr-2">
+            <div class="flex-1 overflow-y-auto mb-4 space-y-2 pr-2 min-h-0">
               {chatMessages().map((msg, i) => (
                 <div class={msg.role === 'user' ? 'chat chat-end' : 'chat chat-start'}>
                   <div class={msg.role === 'user' ? 'chat-bubble chat-bubble-primary' : 'chat-bubble chat-bubble-secondary'}>
@@ -355,7 +445,59 @@ export default function AskOllama(props: AskOllamaProps) {
               )}
             </div>
             {/* Input area */}
-            <form class="flex gap-2 items-end" style={{ 'margin-top': 'auto' }} onSubmit={async e => {
+            <div class="flex gap-2 mb-2 overflow-x-auto whitespace-nowrap" style={{ "scrollbar-width": 'none'}}>
+              {autoPrompts.map(prompt => {
+                let displayPrompt = prompt;
+                const needsLocation = prompt.includes('my location');
+                return (
+                  <button
+                    type="button"
+                    class="badge badge-outline badge-lg cursor-pointer px-3 py-2 rounded-full text-xs hover:bg-primary hover:text-primary-content transition"
+                    onClick={async () => {
+                      if (needsLocation && !userLocation()) {
+                        if (window.confirm('This prompt needs your location. Do you allow access to your location?')) {
+                          if (navigator.geolocation) {
+                            navigator.geolocation.getCurrentPosition(async pos => {
+                              const lat = pos.coords.latitude;
+                              const lon = pos.coords.longitude;
+                              try {
+                                const res = await fetch('/api/google/places/geocode', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ lat, lon })
+                                });
+                                const data = await res.json();
+                                setUserLocation({ lat, lon, city: data.name || undefined });
+                                let locPrompt = prompt.replace('my location', data.name || `${lat.toFixed(3)},${lon.toFixed(3)}`);
+                                sendPrompt(locPrompt);
+                              } catch {
+                                let locPrompt = prompt.replace('my location', `${lat.toFixed(3)},${lon.toFixed(3)}`);
+                                sendPrompt(locPrompt);
+                              }
+                            }, () => {/* denied */});
+                          }
+                        }
+                        return;
+                      }
+                      if (needsLocation && userLocation()) {
+                        const loc = userLocation();
+                        if (loc) {
+                          if (typeof loc.city === 'string' && loc.city.length > 0) {
+                            displayPrompt = prompt.replace('my location', loc.city);
+                          } else {
+                            displayPrompt = prompt.replace('my location', `${loc.lat.toFixed(3)},${loc.lon.toFixed(3)}`);
+                          }
+                        }
+                      }
+                      sendPrompt(displayPrompt);
+                    }}
+                  >
+                    {displayPrompt}
+                  </button>
+                );
+              })}
+            </div>
+            <form class="flex gap-2 items-end flex-shrink-0" style={{ 'margin-top': 0 }} onSubmit={async e => {
               e.preventDefault();
               const message = naturalInput().trim();
               if (!message) return;
