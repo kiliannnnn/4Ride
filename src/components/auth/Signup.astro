@@ -94,17 +94,13 @@ const tRoute = useTranslationsRoute(lang);
             </div>
 
             <div>
-                <label for="password" class="block text-sm font-medium"
-                    >{t("auth.password")}</label
-                >
-                <input
-                    type="password"
-                    name="password"
-                    id="password"
-                    placeholder={t("auth.password")}
-                    class="input input-bordered w-full mt-1"
-                    required
-                />
+                <label for="p1" class="block text-sm font-medium">{t("auth.password")}</label>
+                <input type="password" name="p1" id="p1" placeholder={t("auth.password")} class="input input-bordered w-full mt-1" required />
+            </div>
+
+            <div>
+                <label for="p2" class="block text-sm font-medium">Confirm Password</label>
+                <input type="password" name="p2" id="p2" placeholder={t("auth.password")} class="input input-bordered w-full mt-1" required />
             </div>
 
             <div class="auth-error text-error text-sm mb-2"></div>
