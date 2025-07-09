@@ -283,7 +283,7 @@ export default function AskOllama(props: AskOllamaProps) {
         <img src="/assets/images/biker.webp" alt="Background" class="w-full h-full object-cover object-center opacity-50" />
       </div>
       {/* Main card */}
-      <div class="overflow-hidden relative z-10 w-full max-w-4xl md:max-w-5xl lg:max-w-6xl p-8 md:p-0 rounded-3xl shadow-2xl bg-base-100/90 backdrop-blur-lg flex flex-col md:flex-row items-start justify-center h-full" style={{ 'max-width': '1100px', 'max-height': '70%' }}>
+      <div class="overflow-hidden relative z-10 w-full max-w-4xl md:max-w-5xl lg:max-w-6xl p-8 md:p-0 rounded-3xl shadow-2xl bg-base-100/90 backdrop-blur-lg flex flex-col md:flex-row items-start justify-center h-full" style={{ 'max-width': '1100px', 'max-height': '90%' }}>
         <div class="w-full md:w-1/2">
           <div class="tabs tabs-lift w-full">
             <label class="tab cursor-pointer" classList={{'tab-active': activeTab() === 'natural'}}>
@@ -301,22 +301,33 @@ export default function AskOllama(props: AskOllamaProps) {
             {/* Current itinerary display */}
             <Show when={availableItineraries().length > 0}>
               <div class="mb-4">
-                <div class="font-semibold mb-1">Available Itineraries:</div>
-                <div class="flex flex-col gap-2">
+                <div class="font-semibold mb-2 text-lg">Available Itineraries:</div>
+                <div class="flex flex-col gap-4">
                   {availableItineraries().map((it, idx) => (
-                    <button
-                      class={`btn btn-xs ${selectedItineraryIdx() === idx ? 'btn-primary' : 'btn-outline'}`}
-                      onClick={() => {
-                        setSelectedItineraryIdx(idx);
-                        setItinerary(it.cities);
-                      }}
-                    >
-                      {it.label || `Itinerary ${idx + 1}`}
-                    </button>
+                    <div class={`border rounded-xl p-4 flex flex-col md:flex-row items-center gap-4 transition-all ${selectedItineraryIdx() === idx ? 'border-primary bg-primary/10 shadow-lg' : 'border-base-300 bg-base-200'}`}
+                         style={{ cursor: 'pointer' }}
+                         onClick={() => {
+                           setSelectedItineraryIdx(idx);
+                           setItinerary(it.cities);
+                         }}>
+                      <div class="flex-1">
+                        <div class="font-semibold mb-1">{it.label || `Itinerary ${idx + 1}`}</div>
+                        <div class="text-xs text-gray-500 mb-1">Route preview:</div>
+                        <div class="flex flex-wrap gap-1 text-sm">
+                          {it.cities.map((city, i) => (
+                            <>
+                              <span class="px-2 py-1 bg-base-100 rounded border border-base-300">{city}</span>
+                              {i < it.cities.length - 1 && <span class="mx-1 text-primary">→</span>}
+                            </>
+                          ))}
+                        </div>
+                      </div>
+                      <button class={`btn btn-sm ${selectedItineraryIdx() === idx ? 'btn-primary' : 'btn-outline'}`}>Select</button>
+                    </div>
                   ))}
                 </div>
-                <div class="mt-2 text-xs text-gray-500">Click to select and show on map</div>
-                <div class="mt-2">
+                <div class="mt-2 text-xs text-gray-500">Click a box to select and show on map</div>
+                <div class="mt-4">
                   <div class="font-semibold mb-1">Current Itinerary:</div>
                   <ol class="list-decimal list-inside text-sm">
                     {itinerary().map((city, i) => <li>{city}</li>)}
