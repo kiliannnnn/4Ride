@@ -8,34 +8,6 @@ interface AskOllamaProps {
   lang?: string;
 }
 
-// function GoogleDirectionsDemo() {
-//   let mapRef: HTMLDivElement | undefined;
-//   onMount(() => {
-//     function initMap() {
-//       const directionsService = new (window as any).google.maps.DirectionsService();
-//       const directionsRenderer = new (window as any).google.maps.DirectionsRenderer();
-//       const map = new (window as any).google.maps.Map(mapRef, {
-//         zoom: 7,
-//         center: { lat: 48.85, lng: 2.35 }, // Paris
-//       });
-//       directionsRenderer.setMap(map);
-//       directionsService.route({
-//         origin: { query: 'Paris, France' },
-//         destination: { query: 'Lyon, France' },
-//         travelMode: (window as any).google.maps.TravelMode.DRIVING,
-//       }, (response: any, status: string) => {
-//         if (status === 'OK') {
-//           directionsRenderer.setDirections(response);
-//         } else {
-//           window.alert('Directions request failed due to ' + status);
-//         }
-//       });
-//     }
-//     loadGoogleMaps(initMap);
-//   });
-//   return <div ref={el => (mapRef = el as HTMLDivElement)} style={{ height: '400px', width: '100%' }} />;
-// }
-
 export default function AskOllama(props: AskOllamaProps) {
   const [place, setPlace] = createSignal('');
   const [placeDetails, setPlaceDetails] = createSignal<any | null>(null);
@@ -46,18 +18,27 @@ export default function AskOllama(props: AskOllamaProps) {
   const [avoid, setAvoid] = createSignal<string[]>([]);
   const [style, setStyle] = createSignal('');
   const [roundTrip, setRoundTrip] = createSignal(true);
-  const [response, setResponse] = createSignal('');
   const [loading, setLoading] = createSignal(false);
-  const [error, setError] = createSignal('');
   const lang: lang = (['fr', 'es', 'jp'].includes(props.lang as string) ? props.lang as lang : 'en');
   const [dropdownOpen, setDropdownOpen] = createSignal(false);
   const [waypoints, setWaypoints] = createSignal<{ lat: number, lon: number, name: string }[]>([]);
-  const [parsing, setParsing] = createSignal(false);
   const [mapCenter, setMapCenter] = createSignal<{ lat: number, lng: number } | null>(null);
   let mapRef: HTMLDivElement | undefined;
   let map: any = null;
   let marker: any = null;
   const [sessionToken, setSessionToken] = createSignal('');
+  const [activeTab, setActiveTab] = createSignal<'nlp' | 'form'>('form');
+  const [responseNlp, setResponseNlp] = createSignal('');
+  const [errorNlp, setErrorNlp] = createSignal('');
+  const [responseForm, setResponseForm] = createSignal('');
+  const [errorForm, setErrorForm] = createSignal('');
+  const [parsingNlp, setParsingNlp] = createSignal(false);
+  const [parsingForm, setParsingForm] = createSignal(false);
+  const [chatMessages, setChatMessages] = createSignal<{ role: 'user' | 'ai', text: string }[]>([]);
+  const [nlpInput, setNlpInput] = createSignal('');
+  const [isStreaming, setIsStreaming] = createSignal(false);
+  const [itinerary, setItinerary] = createSignal<string[]>([]); // current itinerary as city names
+  const [lastItinerary, setLastItinerary] = createSignal<string[]>([]); // for map update comparison
 
   // Generate a new session token for each new search session
   function newSessionToken() {
@@ -116,60 +97,42 @@ export default function AskOllama(props: AskOllamaProps) {
     setArr(arr.includes(key) ? arr.filter(k => k !== key) : [...arr, key]);
   };
 
-  const handleSubmit = async (e: Event) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    setResponse('');
-    try {
-      const placeString = placeDetails()
-        ? `${placeDetails().name}, ${placeDetails().address} (${placeDetails().lat}, ${placeDetails().lng})`
-        : place();
-      const res = await fetch('/api/ai/ollama', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          place: placeString,
-          days: days(),
-          hours: hours(),
-          features: features(),
-          avoid: avoid(),
-          style: style(),
-          roundTrip: roundTrip(),
-          lang
-        })
-      });
-      if (!res.body) throw new Error('No response body');
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let fullText = '';
-      setResponse('');
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        fullText += chunk;
-        setResponse(fullText);
-      }
-    } catch (err: any) {
-      setError(err.message || 'Unknown error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Parse AI answer for waypoints and geocode them
+  // Parse AI answer for waypoints and geocode them (for NLP tab)
   createEffect(async () => {
-    // Only run when response is non-empty and loading is false (AI finished streaming)
-    if (!response() || loading()) {
+    // Only run if itinerary changed
+    if (itinerary().length === 0 || JSON.stringify(itinerary()) === JSON.stringify(lastItinerary())) {
       setWaypoints([]);
-      setParsing(false);
+      setParsingNlp(false);
       return;
     }
-    setParsing(true);
+    setParsingNlp(true);
+    const geocoded: { lat: number, lon: number, name: string }[] = [];
+    for (const name of itinerary()) {
+      try {
+        const res = await fetch('/api/google/places/geocode', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name })
+        });
+        const data = await res.json();
+        if (data.lat && data.lon) {
+          geocoded.push({ lat: data.lat, lon: data.lon, name: data.name });
+        } // else skip point if not found
+      } catch (err) { /* skip point if error */ }
+    }
+    setWaypoints(geocoded);
+    setParsingNlp(false);
+  });
+  // Parse AI answer for waypoints and geocode them (for Form tab)
+  createEffect(async () => {
+    if (!responseForm() || loading()) {
+      setWaypoints([]);
+      setParsingForm(false);
+      return;
+    }
+    setParsingForm(true);
     let names: string[] = [];
-    let raw = response().trim();
-    // Remove Markdown code block if present
+    let raw = responseForm().trim();
     if (raw.startsWith('```')) {
       raw = raw.replace(/^```[a-zA-Z]*\n?/, '').replace(/```$/, '').trim();
     }
@@ -178,10 +141,9 @@ export default function AskOllama(props: AskOllamaProps) {
       if (!Array.isArray(names)) throw new Error('Not an array');
     } catch (err) {
       setWaypoints([]);
-      setParsing(false);
+      setParsingForm(false);
       return;
     }
-    // Geocode each name using Google Places backend proxy
     const geocoded: { lat: number, lon: number, name: string }[] = [];
     for (const name of names) {
       try {
@@ -194,10 +156,10 @@ export default function AskOllama(props: AskOllamaProps) {
         if (data.lat && data.lon) {
           geocoded.push({ lat: data.lat, lon: data.lon, name: data.name });
         }
-      } catch (err) {}
+      } catch (err) { }
     }
     setWaypoints(geocoded);
-    setParsing(false);
+    setParsingForm(false);
   });
 
   // DirectionsService/DirectionsRenderer logic
@@ -206,7 +168,7 @@ export default function AskOllama(props: AskOllamaProps) {
   let singleCityMarker: any = null;
   createEffect(() => {
     if (!mapRef) return;
-    // If there are 2+ waypoints, use DirectionsRenderer
+    // Only use valid waypoints (2+)
     if (waypoints().length >= 2) {
       loadGoogleMaps(() => {
         if (!map) {
@@ -248,10 +210,10 @@ export default function AskOllama(props: AskOllamaProps) {
           }
         });
       });
-    } else if (placeDetails()) {
+    } else if (waypoints().length === 1) {
       // If only one city is selected, center and show marker
       loadGoogleMaps(() => {
-        const center = { lat: parseFloat(placeDetails().lat), lng: parseFloat(placeDetails().lng) };
+        const center = { lat: waypoints()[0].lat, lng: waypoints()[0].lon };
         if (!map) {
           map = new (window as any).google.maps.Map(mapRef, {
             center,
@@ -269,7 +231,7 @@ export default function AskOllama(props: AskOllamaProps) {
         singleCityMarker = new (window as any).google.maps.Marker({
           position: center,
           map,
-          title: placeDetails().name,
+          title: waypoints()[0].name,
         });
       });
     }
@@ -313,205 +275,366 @@ export default function AskOllama(props: AskOllamaProps) {
   });
 
   return (
-    <div class="flex flex-col md:flex-row gap-8 items-start justify-center min-h-screen w-full p-8">
-      <div class="w-full md:w-1/2">
-        <form onSubmit={handleSubmit} class="space-y-4">
-          <div class="flex flex-col md:flex-row md:items-end gap-4 w-full">
-            <div class="flex-1 min-w-0">
-              <label class="block text-sm font-medium mb-1">{t(lang, 'place')}</label>
-              <div class="dropdown w-full">
-                <input
-                  type="text"
-                  class="input input-bordered w-full"
-                  value={place()}
-                  onInput={handleInput}
-                  required
-                  autocomplete="off"
-                  placeholder={t(lang, 'searchCity')}
-                  onFocus={() => setDropdownOpen(suggestions().length > 0)}
-                  tabindex="0"
-                />
-                <ul
-                  tabindex="0"
-                  class={`dropdown-content menu bg-base-100 rounded-box z-1 w-full p-2 shadow-sm ${dropdownOpen() ? '' : 'hidden'}`}
+    <div class="relative w-full overflow-hidden flex items-center justify-center" style={{ 'min-height': 'calc(100vh - 128px)', height: 'calc(100vh - 128px)' }}>
+      {/* Background image */}
+      <div class="absolute inset-0 z-0">
+        <img src="/assets/images/biker.webp" alt="Background" class="w-full h-full object-cover object-center opacity-50" />
+      </div>
+      {/* Main card */}
+      <div class="overflow-hidden relative z-10 w-full max-w-4xl md:max-w-5xl lg:max-w-6xl p-8 md:p-0 rounded-3xl shadow-2xl bg-base-100/90 backdrop-blur-lg flex flex-col md:flex-row items-start justify-center" style={{ 'max-width': '1100px', 'max-height': '90%' }}>
+        <div class="w-full md:w-1/2">
+          <div class="tabs tabs-lift w-full mb-4">
+            <label class="tab cursor-pointer" classList={{'tab-active': activeTab() === 'nlp'}}>
+              <input type="radio" name="askollama_tabs" checked={activeTab() === 'nlp'} onChange={() => setActiveTab('nlp')} />
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 me-2"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" /></svg>
+              Ask AI
+            </label>
+            <label class="tab cursor-pointer" classList={{'tab-active': activeTab() === 'form'}}>
+              <input type="radio" name="askollama_tabs" checked={activeTab() === 'form'} onChange={() => setActiveTab('form')} />
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 me-2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z" /></svg>
+              Form
+            </label>
+          </div>
+          <div class="tab-content bg-base-100 border-base-300 p-6 flex flex-col h-[500px] md:h-[600px]" style={{ display: activeTab() === 'nlp' ? 'flex' : 'none' }}>
+            {/* Current itinerary display */}
+            <Show when={itinerary().length > 0}>
+              <div class="mb-4">
+                <div class="font-semibold mb-1">Current Itinerary:</div>
+                <ol class="list-decimal list-inside text-sm">
+                  {itinerary().map((city, i) => <li>{city}</li>)}
+                </ol>
+              </div>
+            </Show>
+            {/* Chat messages */}
+            <div class="flex-1 overflow-y-auto mb-4 space-y-2 pr-2">
+              {chatMessages().map((msg, i) => (
+                <div class={msg.role === 'user' ? 'chat chat-end' : 'chat chat-start'}>
+                  <div class={msg.role === 'user' ? 'chat-bubble chat-bubble-primary' : 'chat-bubble chat-bubble-secondary'}>
+                    {msg.text}
+                  </div>
+                </div>
+              ))}
+              {/* Streaming AI message */}
+              {isStreaming() && (
+                <div class="chat chat-start">
+                  <div class="chat-bubble chat-bubble-secondary">
+                    {responseNlp()}
+                    <span class="ml-2 loading loading-dots loading-xs align-middle"></span>
+                  </div>
+                </div>
+              )}
+            </div>
+            {/* Input area */}
+            <form class="flex gap-2 items-end" style={{ 'margin-top': 'auto' }} onSubmit={async e => {
+              e.preventDefault();
+              const message = nlpInput().trim();
+              if (!message) return;
+              setChatMessages([...chatMessages(), { role: 'user', text: message }]);
+              setNlpInput('');
+              setIsStreaming(true);
+              setResponseNlp('');
+              setErrorNlp('');
+              try {
+                const res = await fetch('/api/ai/ollama', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    mode: 'nlp-convo',
+                    history: chatMessages(),
+                    itinerary: itinerary(),
+                    message,
+                    lang
+                  })
+                });
+                if (!res.body) throw new Error('No response body');
+                const reader = res.body.getReader();
+                const decoder = new TextDecoder();
+                let fullText = '';
+                setResponseNlp('');
+                while (true) {
+                  const { done, value } = await reader.read();
+                  if (done) break;
+                  const chunk = decoder.decode(value, { stream: true });
+                  fullText += chunk;
+                  setResponseNlp(fullText);
+                }
+                // Try to parse the streamed response as a JSON array (itinerary)
+                let newItinerary: string[] = [];
+                let raw = fullText.trim();
+                if (raw.startsWith('```')) {
+                  raw = raw.replace(/^```[a-zA-Z]*\n?/, '').replace(/```$/, '').trim();
+                }
+                try {
+                  newItinerary = JSON.parse(raw);
+                  if (!Array.isArray(newItinerary)) throw new Error('Not an array');
+                } catch (err) {
+                  // Not a valid itinerary, just treat as chat
+                  setChatMessages(msgs => [...msgs, { role: 'ai', text: fullText }]);
+                  setIsStreaming(false);
+                  return;
+                }
+                // Only update if changed
+                if (JSON.stringify(newItinerary) !== JSON.stringify(itinerary())) {
+                  setItinerary(newItinerary);
+                  setLastItinerary(itinerary());
+                }
+                setChatMessages(msgs => [...msgs, { role: 'ai', text: fullText }]);
+              } catch (err: any) {
+                setErrorNlp(err.message || 'Unknown error');
+              } finally {
+                setIsStreaming(false);
+              }
+            }}>
+              <input
+                type="text"
+                name="nlp_question"
+                class="input input-bordered w-full"
+                placeholder="Type your question..."
+                value={nlpInput()}
+                onInput={e => setNlpInput(e.currentTarget.value)}
+                disabled={isStreaming()}
+                autocomplete="off"
+              />
+              <button type="submit" class="btn btn-primary" disabled={isStreaming() || !nlpInput().trim()}>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
+              </button>
+            </form>
+            {errorNlp() && <div class="alert alert-error mt-2">{t(lang, 'error')}: {errorNlp()}</div>}
+          </div>
+          <div class="tab-content bg-base-100 border-base-300 p-6" style={{ display: activeTab() === 'form' ? 'block' : 'none' }}>
+            <form onSubmit={async (e: Event) => {
+              e.preventDefault();
+              setLoading(true);
+              setErrorForm('');
+              setResponseForm('');
+              try {
+                const placeString = placeDetails()
+                  ? `${placeDetails().name}, ${placeDetails().address} (${placeDetails().lat}, ${placeDetails().lng})`
+                  : place();
+                const res = await fetch('/api/ai/ollama', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    mode: 'form',
+                    place: placeString,
+                    days: days(),
+                    hours: hours(),
+                    features: features(),
+                    avoid: avoid(),
+                    style: style(),
+                    roundTrip: roundTrip(),
+                    lang
+                  })
+                });
+                if (!res.body) throw new Error('No response body');
+                const reader = res.body.getReader();
+                const decoder = new TextDecoder();
+                let fullText = '';
+                setResponseForm('');
+                while (true) {
+                  const { done, value } = await reader.read();
+                  if (done) break;
+                  const chunk = decoder.decode(value, { stream: true });
+                  fullText += chunk;
+                  setResponseForm(fullText);
+                }
+              } catch (err: any) {
+                setErrorForm(err.message || 'Unknown error');
+              } finally {
+                setLoading(false);
+              }
+            }} class="space-y-4">
+              <div class="flex flex-col md:flex-row md:items-end gap-4 w-full">
+                <div class="flex-1 min-w-0">
+                  <label class="block text-sm font-medium mb-1">{t(lang, 'place')}</label>
+                  <div class="dropdown w-full">
+                    <input
+                      type="text"
+                      class="input input-bordered w-full"
+                      value={place()}
+                      onInput={handleInput}
+                      required
+                      autocomplete="off"
+                      placeholder={t(lang, 'searchCity')}
+                      onFocus={() => setDropdownOpen(suggestions().length > 0)}
+                      tabindex="0"
+                    />
+                    <ul
+                      tabindex="0"
+                      class={`dropdown-content menu bg-base-100 rounded-box z-1 w-full p-2 shadow-sm ${dropdownOpen() ? '' : 'hidden'}`}
+                    >
+                      {suggestions().map(s => (
+                        <li>
+                          <a
+                            class="p-2 hover:bg-base-200 cursor-pointer"
+                            onMouseDown={() => handleSuggestionClick(s)}
+                          >
+                            {s.description}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+                <div class="flex flex-col md:flex-row gap-2 md:items-end h-full">
+                  <div>
+                    <label class="block text-sm font-medium mb-1">{t(lang, 'days')}</label>
+                    <input
+                      type="number"
+                      min="0"
+                      class="input input-bordered w-full md:w-20"
+                      value={days()}
+                      onInput={e => setDays(e.currentTarget.value)}
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium mb-1">{t(lang, 'hours')}</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="23"
+                      class="input input-bordered w-full md:w-20"
+                      value={hours()}
+                      onInput={e => setHours(e.currentTarget.value)}
+                    />
+                  </div>
+                  <div class="flex flex-col items-start md:self-center mt-4 md:mt-0 md:ml-4">
+                    <label class="block text-sm font-medium mb-1">{t(lang, 'roundTrip')}</label>
+                    <label class="cursor-pointer flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        class="checkbox checkbox-primary"
+                        checked={roundTrip()}
+                        onChange={() => setRoundTrip(v => !v)}
+                      />
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div class="join join-vertical bg-base-100 w-full">
+                {/* Features Accordion */}
+                <div class="collapse collapse-arrow join-item border-base-300 border">
+                  <input type="radio" name="form-accordion" checked />
+                  <div class="collapse-title font-semibold">
+                    {t(lang, 'features')}
+                  </div>
+                  <div class="collapse-content">
+                    <div class="flex flex-wrap gap-2">
+                      {FEATURES.map(f => (
+                        <label class="cursor-pointer flex items-center gap-1">
+                          <input
+                            type="checkbox"
+                            class="checkbox checkbox-primary"
+                            checked={features().includes(f.key)}
+                            onChange={() => handleCheckbox(features(), setFeatures, f.key)}
+                          />
+                          {f.label[lang]}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                {/* Avoid Accordion */}
+                <div class="collapse collapse-arrow join-item border-base-300 border">
+                  <input type="radio" name="form-accordion" />
+                  <div class="collapse-title font-semibold">
+                    {t(lang, 'avoid')}
+                  </div>
+                  <div class="collapse-content">
+                    <div class="flex flex-wrap gap-2">
+                      {AVOID.map(a => (
+                        <label class="cursor-pointer flex items-center gap-1">
+                          <input
+                            type="checkbox"
+                            class="checkbox checkbox-primary"
+                            checked={avoid().includes(a.key)}
+                            onChange={() => handleCheckbox(avoid(), setAvoid, a.key)}
+                          />
+                          {a.label[lang]}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                {/* Style Accordion */}
+                <div class="collapse collapse-arrow join-item border-base-300 border">
+                  <input type="radio" name="form-accordion" />
+                  <div class="collapse-title font-semibold">
+                    {t(lang, 'style')}
+                  </div>
+                  <div class="collapse-content">
+                    <div class="flex gap-4">
+                      {STYLES.map(s => (
+                        <label class="cursor-pointer flex items-center gap-1">
+                          <input
+                            type="radio"
+                            class="radio radio-primary"
+                            name="style"
+                            checked={style() === s.key}
+                            onChange={() => setStyle(s.key)}
+                          />
+                          {s.label[lang]}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary w-full" disabled={loading()}>
+                {loading() ? t(lang, 'asking') : t(lang, 'ask')}
+              </button>
+            </form>
+            {errorForm() && <div class="alert alert-error mt-4">{t(lang, 'error')}: {errorForm()}</div>}
+            {responseForm() && (
+              <div class="alert alert-success mt-4 whitespace-pre-line">
+                {t(lang, 'response')}:<br />{responseForm()}
+              </div>
+            )}
+            {parsingForm() && (
+              <div class="flex items-center gap-2 mt-4"><span class="loading loading-spinner loading-md text-info"></span> <span>Calculating itinerary...</span></div>
+            )}
+            {waypoints().length > 0 && !parsingForm() && activeTab() === 'form' && (
+              <>
+                <button
+                  class="btn btn-secondary mt-4 w-full"
+                  onClick={() => {
+                    const gpx = generateGPX(waypoints());
+                    const blob = new Blob([gpx], { type: 'application/gpx+xml' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = "itinerary.gpx";
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }}
                 >
-                  {suggestions().map(s => (
-                    <li>
-                      <a
-                        class="p-2 hover:bg-base-200 cursor-pointer"
-                        onMouseDown={() => handleSuggestionClick(s)}
-                      >
-                        {s.description}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-            <div class="flex flex-col md:flex-row gap-2 md:items-end h-full">
-              <div>
-                <label class="block text-sm font-medium mb-1">{t(lang, 'days')}</label>
-                <input
-                  type="number"
-                  min="0"
-                  class="input input-bordered w-full md:w-20"
-                  value={days()}
-                  onInput={e => setDays(e.currentTarget.value)}
-                />
-              </div>
-              <div>
-                <label class="block text-sm font-medium mb-1">{t(lang, 'hours')}</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="23"
-                  class="input input-bordered w-full md:w-20"
-                  value={hours()}
-                  onInput={e => setHours(e.currentTarget.value)}
-                />
-              </div>
-              <div class="flex flex-col items-start md:self-center mt-4 md:mt-0 md:ml-4">
-                <label class="block text-sm font-medium mb-1">{t(lang, 'roundTrip')}</label>
-                <label class="cursor-pointer flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    class="checkbox checkbox-primary"
-                    checked={roundTrip()}
-                    onChange={() => setRoundTrip(v => !v)}
-                  />
-                </label>
-              </div>
-            </div>
+                  Export as GPX
+                </button>
+                <button
+                  class="btn btn-accent mt-2 w-full"
+                  onClick={() => {
+                    const kml = generateKML(waypoints());
+                    const blob = new Blob([kml], { type: 'application/vnd.google-earth.kml+xml' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'itinerary.kml';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                >
+                  Export as KML
+                </button>
+              </>
+            )}
           </div>
-          <div class="join join-vertical bg-base-100 w-full">
-            {/* Features Accordion */}
-            <div class="collapse collapse-arrow join-item border-base-300 border">
-              <input type="radio" name="form-accordion" checked />
-              <div class="collapse-title font-semibold">
-                {t(lang, 'features')}
-              </div>
-              <div class="collapse-content">
-                <div class="flex flex-wrap gap-2">
-                  {FEATURES.map(f => (
-                    <label class="cursor-pointer flex items-center gap-1">
-                      <input
-                        type="checkbox"
-                        class="checkbox checkbox-primary"
-                        checked={features().includes(f.key)}
-                        onChange={() => handleCheckbox(features(), setFeatures, f.key)}
-                      />
-                      {f.label[lang]}
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </div>
-            {/* Avoid Accordion */}
-            <div class="collapse collapse-arrow join-item border-base-300 border">
-              <input type="radio" name="form-accordion" />
-              <div class="collapse-title font-semibold">
-                {t(lang, 'avoid')}
-              </div>
-              <div class="collapse-content">
-                <div class="flex flex-wrap gap-2">
-                  {AVOID.map(a => (
-                    <label class="cursor-pointer flex items-center gap-1">
-                      <input
-                        type="checkbox"
-                        class="checkbox checkbox-primary"
-                        checked={avoid().includes(a.key)}
-                        onChange={() => handleCheckbox(avoid(), setAvoid, a.key)}
-                      />
-                      {a.label[lang]}
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </div>
-            {/* Style Accordion */}
-            <div class="collapse collapse-arrow join-item border-base-300 border">
-              <input type="radio" name="form-accordion" />
-              <div class="collapse-title font-semibold">
-                {t(lang, 'style')}
-              </div>
-              <div class="collapse-content">
-                <div class="flex gap-4">
-                  {STYLES.map(s => (
-                    <label class="cursor-pointer flex items-center gap-1">
-                      <input
-                        type="radio"
-                        class="radio radio-primary"
-                        name="style"
-                        checked={style() === s.key}
-                        onChange={() => setStyle(s.key)}
-                      />
-                      {s.label[lang]}
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-          <button type="submit" class="btn btn-primary w-full" disabled={loading()}>
-            {loading() ? t(lang, 'asking') : t(lang, 'ask')}
-          </button>
-        </form>
-        {error() && <div class="alert alert-error mt-4">{t(lang, 'error')}: {error()}</div>}
-        {response() && (
-          <div class="alert alert-success mt-4 whitespace-pre-line">
-            {t(lang, 'response')}:<br />{response()}
-          </div>
-        )}
-        {parsing() && (
-          <div class="flex items-center gap-2 mt-4"><span class="loading loading-spinner loading-md text-info"></span> <span>Calculating itinerary...</span></div>
-        )}
-        {waypoints().length > 0 && !parsing() && (
-          <>
-            <button
-              class="btn btn-secondary mt-4 w-full"
-              onClick={() => {
-                const gpx = generateGPX(waypoints());
-                const blob = new Blob([gpx], { type: 'application/gpx+xml' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = "itinerary.gpx";
-                a.click();
-                URL.revokeObjectURL(url);
-              }}
-            >
-              Export as GPX
-            </button>
-            <button
-              class="btn btn-accent mt-2 w-full"
-              onClick={() => {
-                const kml = generateKML(waypoints());
-                const blob = new Blob([kml], { type: 'application/vnd.google-earth.kml+xml' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'itinerary.kml';
-                a.click();
-                URL.revokeObjectURL(url);
-              }}
-            >
-              Export as KML
-            </button>
-          </>
-        )}
-      </div>
-      <div class="w-full md:w-1/2 flex flex-col items-center">
-        <h2 class="text-xl font-bold mb-2">Map</h2>
-        <div class="w-full" style={{ 'max-width': '500px' }}>
-          <div ref={el => (mapRef = el as HTMLDivElement)} style={{ height: '400px', width: '100%' }} />
+        </div>
+        <div class="w-full md:w-1/2 flex flex-col items-center">
+          <div ref={el => (mapRef = el as HTMLDivElement)} style={{ height: '600px', width: '100%' }} />
         </div>
       </div>
-      {/* <div class="w-full md:w-1/2 flex flex-col items-center mt-8">
-        <h2 class="text-xl font-bold mb-2">Google Directions Demo</h2>
-        <div class="w-full" style={{ 'max-width': '500px' }}>
-          <GoogleDirectionsDemo />
-        </div>
-      </div> */}
     </div>
   );
 } 
