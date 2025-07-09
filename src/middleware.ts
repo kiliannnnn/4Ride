@@ -67,7 +67,7 @@ async function auth({ locals, url, cookies, redirect }: AuthContext, next: NextF
         return redirect(tRoute('/'));
     }
     
-    if (adminWhitelist.includes(user?.id)) {
+    if (adminWhitelist.includes(locals.sb_user?.id)) {
         locals.isAdmin = true;
     } else {
         locals.isAdmin = false;

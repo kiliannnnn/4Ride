@@ -14,6 +14,7 @@ export const ui = {
     'nav.home': 'Home',
     'nav.about': 'About',
 
+    'auth.admin': 'Administrator',
     'auth.dashboard': 'Dashboard',
     'auth.signin': 'Sign In',
     'auth.signup': 'Sign Up',
@@ -32,6 +33,7 @@ export const ui = {
     'nav.home': 'Accueil',
     'nav.about': 'À propos',
 
+    'auth.admin': 'Administrateur',
     'auth.dashboard': 'Tableau de bord',
     'auth.signin': 'Se connecter',
     'auth.signup': 'S\'inscrire',
@@ -50,6 +52,7 @@ export const ui = {
     'nav.home': 'Inicio',
     'nav.about': 'Acerca',
 
+    'auth.admin': 'Administrador',
     'auth.dashboard': 'Tablero',
     'auth.signin': 'Registrarse',
     'auth.signup': 'Inscribirse',
@@ -68,6 +71,7 @@ export const ui = {
     'nav.home': 'ホーム',
     'nav.about': '約',
 
+    'auth.admin': '管理者',
     'auth.dashboard': 'ダッシュボード',
     'auth.signin': 'サインイン',
     'auth.signup': 'サインアップ',

@@ -8,6 +8,7 @@ const t = useTranslations(lang);
 const tRoute = useTranslationsRoute(lang);
 
 const user = Astro.locals.sb_user;
+const isAdmin = Astro.locals.isAdmin;
 ---
 
 <details class="dropdown dropdown-end">
@@ -21,6 +22,7 @@ const user = Astro.locals.sb_user;
         </div>
     </summary>
     <ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow">
+        { isAdmin && <li><a href={getRelativeLocaleUrl(lang, tRoute("admin"))}>{t("auth.admin")}</a></li>}
         { user ? (
             <li><a href={getRelativeLocaleUrl(lang, tRoute("dashboard"))}>{t("auth.dashboard")}</a></li>
             <li><a href="/api/auth/signout">{t("auth.signout")}</a></li>

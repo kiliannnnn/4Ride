@@ -414,8 +414,8 @@ export default function AskOllama(props: AskOllamaProps) {
       {/* Main card */}
       <div class="overflow-hidden relative z-10 w-full max-w-6xl md:max-w-7xl lg:max-w-8xl p-8 md:p-0 rounded-3xl shadow-2xl bg-base-100/90 backdrop-blur-lg flex flex-row items-stretch justify-center h-full" style={{ 'max-width': '1400px', 'max-height': '90%' }}>
         <div class="w-full md:w-1/2 flex flex-col h-full">
-          <div class="tabs tabs-lift w-full flex items-center justify-between">
-            <div class="flex">
+          <div class="w-full flex items-center justify-between">
+            <div class="tabs tabs-lift flex">
               <label class="tab cursor-pointer" classList={{'tab-active': activeTab() === 'natural'}}>
                 <input type="radio" name="askollama_tabs" checked={activeTab() === 'natural'} onChange={() => setActiveTab('natural')} />
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 me-2"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" /></svg>
@@ -427,7 +427,7 @@ export default function AskOllama(props: AskOllamaProps) {
                 Form
               </label>
             </div>
-            <button class="btn btn-outline btn-sm m-2" title="Export/Share" onClick={() => setShowExportModal(true)}>
+            <button class="btn btn-outline btn-sm m-1" title="Export/Share" onClick={() => setShowExportModal(true)}>
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 16v-8m0 0l-3.5 3.5M12 8l3.5 3.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
