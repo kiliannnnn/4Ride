@@ -42,6 +42,10 @@ export default function AskOllama(props: AskOllamaProps) {
   const [availableItineraries, setAvailableItineraries] = createSignal<{ cities: string[], label: string }[]>([]);
   const [selectedItineraryIdx, setSelectedItineraryIdx] = createSignal(0);
   const [userLocation, setUserLocation] = createSignal<{ lat: number, lon: number, city?: string } | null>(null);
+  const [showExportModal, setShowExportModal] = createSignal(false);
+  const [exportLoading, setExportLoading] = createSignal(false);
+  const [detailedRoute, setDetailedRoute] = createSignal<{ lat: number, lon: number }[] | null>(null);
+  const [exportError, setExportError] = createSignal('');
 
   onMount(() => {
     if (navigator.geolocation) {
@@ -366,6 +370,41 @@ export default function AskOllama(props: AskOllamaProps) {
     }
   }
 
+  // Helper to fetch detailed route from backend
+  async function fetchDetailedRoute() {
+    if (!waypoints() || waypoints().length < 2) return null;
+    setExportLoading(true);
+    setExportError('');
+    try {
+      const res = await fetch('/api/google/directions/route', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ waypoints: waypoints() })
+      });
+      const data = await res.json();
+      if (data.points && Array.isArray(data.points)) {
+        setDetailedRoute(data.points);
+        return data.points;
+      } else {
+        setExportError('No route found');
+        return null;
+      }
+    } catch (err: any) {
+      setExportError(err.message || 'Unknown error');
+      return null;
+    } finally {
+      setExportLoading(false);
+    }
+  }
+
+  // Helper to open Google Maps with waypoints
+  function openGoogleMaps() {
+    if (!waypoints() || waypoints().length < 2) return;
+    const base = 'https://www.google.com/maps/dir/';
+    const path = waypoints().map(wp => `${wp.lat},${wp.lon}`).join('/');
+    window.open(base + path, '_blank');
+  }
+
   return (
     <div class="relative w-full overflow-hidden flex items-center justify-center" style={{ 'min-height': 'calc(100vh - 128px)', height: 'calc(100vh - 128px)' }}>
       {/* Background image */}
@@ -375,17 +414,25 @@ export default function AskOllama(props: AskOllamaProps) {
       {/* Main card */}
       <div class="overflow-hidden relative z-10 w-full max-w-6xl md:max-w-7xl lg:max-w-8xl p-8 md:p-0 rounded-3xl shadow-2xl bg-base-100/90 backdrop-blur-lg flex flex-row items-stretch justify-center h-full" style={{ 'max-width': '1400px', 'max-height': '90%' }}>
         <div class="w-full md:w-1/2 flex flex-col h-full">
-          <div class="tabs tabs-lift w-full">
-            <label class="tab cursor-pointer" classList={{'tab-active': activeTab() === 'natural'}}>
-              <input type="radio" name="askollama_tabs" checked={activeTab() === 'natural'} onChange={() => setActiveTab('natural')} />
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 me-2"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" /></svg>
-              Natural
-            </label>
-            <label class="tab cursor-pointer" classList={{'tab-active': activeTab() === 'form'}}>
-              <input type="radio" name="askollama_tabs" checked={activeTab() === 'form'} onChange={() => setActiveTab('form')} />
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 me-2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z" /></svg>
-              Form
-            </label>
+          <div class="tabs tabs-lift w-full flex items-center justify-between">
+            <div class="flex">
+              <label class="tab cursor-pointer" classList={{'tab-active': activeTab() === 'natural'}}>
+                <input type="radio" name="askollama_tabs" checked={activeTab() === 'natural'} onChange={() => setActiveTab('natural')} />
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 me-2"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" /></svg>
+                Natural
+              </label>
+              <label class="tab cursor-pointer" classList={{'tab-active': activeTab() === 'form'}}>
+                <input type="radio" name="askollama_tabs" checked={activeTab() === 'form'} onChange={() => setActiveTab('form')} />
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 me-2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z" /></svg>
+                Form
+              </label>
+            </div>
+            <button class="btn btn-outline btn-sm m-2" title="Export/Share" onClick={() => setShowExportModal(true)}>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 16v-8m0 0l-3.5 3.5M12 8l3.5 3.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span class="ml-1 hidden md:inline">Export/Share</span>
+            </button>
           </div>
           <div class="tab-content bg-base-100 border-base-300 p-6 flex flex-col flex-1 h-full min-h-0" style={{ display: activeTab() === 'natural' ? 'flex' : 'none' }}>
             {/* Current itinerary display */}
@@ -748,46 +795,87 @@ export default function AskOllama(props: AskOllamaProps) {
             {parsingForm() && (
               <div class="flex items-center gap-2 mt-4"><span class="loading loading-spinner loading-md text-info"></span> <span>Calculating itinerary...</span></div>
             )}
-            {waypoints().length > 0 && !parsingForm() && activeTab() === 'form' && (
-              <>
-                <button
-                  class="btn btn-secondary mt-4 w-full"
-                  onClick={() => {
-                    const gpx = generateGPX(waypoints());
-                    const blob = new Blob([gpx], { type: 'application/gpx+xml' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = "itinerary.gpx";
-                    a.click();
-                    URL.revokeObjectURL(url);
-                  }}
-                >
-                  Export as GPX
-                </button>
-                <button
-                  class="btn btn-accent mt-2 w-full"
-                  onClick={() => {
-                    const kml = generateKML(waypoints());
-                    const blob = new Blob([kml], { type: 'application/vnd.google-earth.kml+xml' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'itinerary.kml';
-                    a.click();
-                    URL.revokeObjectURL(url);
-                  }}
-                >
-                  Export as KML
-                </button>
-              </>
-            )}
           </div>
         </div>
         <div class="w-full md:w-1/2 flex flex-col items-center h-full">
           <div ref={el => (mapRef = el as HTMLDivElement)} class="w-full h-full min-h-[300px]" />
         </div>
       </div>
+      {/* Export/Share Modal (daisyUI dialog) */}
+      <dialog id="export_modal" class="modal" open={showExportModal()} onClose={() => setShowExportModal(false)}>
+        <div class="modal-box">
+          <h3 class="font-bold text-lg mb-4">Export or Share Route</h3>
+          <div class="flex flex-row gap-6 justify-center items-center mb-2">
+            {/* GPX Button */}
+            <button
+              class="btn btn-circle btn-lg btn-secondary tooltip w-16 h-16"
+              aria-label="Export as GPX"
+              data-tip="Export as GPX"
+              disabled={exportLoading()}
+              onClick={async () => {
+                const points = detailedRoute() || await fetchDetailedRoute();
+                if (!points) return;
+                const gpx = generateGPX(points.map((pt: { lat: number, lon: number }, i: number) => ({ lat: pt.lat, lon: pt.lon, name: `Point ${i+1}` })));
+                const blob = new Blob([gpx], { type: 'application/gpx+xml' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'itinerary.gpx';
+                a.click();
+                URL.revokeObjectURL(url);
+                setShowExportModal(false);
+              }}
+            >
+              <span class="font-bold text-xl">GPX</span>
+            </button>
+            {/* KML Button */}
+            <button
+              class="btn btn-circle btn-lg btn-accent tooltip w-16 h-16"
+              aria-label="Export as KML"
+              data-tip="Export as KML"
+              disabled={exportLoading()}
+              onClick={async () => {
+                const points = detailedRoute() || await fetchDetailedRoute();
+                if (!points) return;
+                const kml = generateKML(points.map((pt: { lat: number, lon: number }, i: number) => ({ lat: pt.lat, lon: pt.lon, name: `Point ${i+1}` })));
+                const blob = new Blob([kml], { type: 'application/vnd.google-earth.kml+xml' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'itinerary.kml';
+                a.click();
+                URL.revokeObjectURL(url);
+                setShowExportModal(false);
+              }}
+            >
+              <span class="font-bold text-xl">KML</span>
+            </button>
+            {/* Google Maps Button */}
+            <button
+              class="btn btn-circle btn-lg btn-info tooltip w-16 h-16"
+              aria-label="Share to Google Maps"
+              data-tip="Share to Google Maps"
+              onClick={() => { openGoogleMaps(); setShowExportModal(false); }}
+            >
+              {/* Fallback: map marker icon */}
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 21.75c-4.5-6-7.5-9.75-7.5-13.125A7.5 7.5 0 0112 1.125a7.5 7.5 0 017.5 7.5c0 3.375-3 7.125-7.5 13.125z" />
+                <circle cx="12" cy="8.625" r="2.25" />
+              </svg>
+            </button>
+          </div>
+          {exportError() && <div class="alert alert-error mt-2">{exportError()}</div>}
+          {exportLoading() && <div class="flex items-center gap-2 mt-2"><span class="loading loading-spinner loading-md text-info"></span> <span>Loading route...</span></div>}
+          <div class="modal-action mt-4">
+            <form method="dialog">
+              <button class="btn" onClick={() => setShowExportModal(false)}>Close</button>
+            </form>
+          </div>
+        </div>
+        <form method="dialog" class="modal-backdrop" onClick={() => setShowExportModal(false)}>
+          <button>close</button>
+        </form>
+      </dialog>
     </div>
   );
 } 
