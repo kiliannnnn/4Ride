@@ -27,18 +27,20 @@ export default function AskOllama(props: AskOllamaProps) {
   let map: any = null;
   let marker: any = null;
   const [sessionToken, setSessionToken] = createSignal('');
-  const [activeTab, setActiveTab] = createSignal<'nlp' | 'form'>('form');
-  const [responseNlp, setResponseNlp] = createSignal('');
-  const [errorNlp, setErrorNlp] = createSignal('');
+  const [activeTab, setActiveTab] = createSignal<'natural' | 'form'>('natural');
+  const [responseNatural, setResponseNatural] = createSignal('');
+  const [errorNatural, setErrorNatural] = createSignal('');
   const [responseForm, setResponseForm] = createSignal('');
   const [errorForm, setErrorForm] = createSignal('');
-  const [parsingNlp, setParsingNlp] = createSignal(false);
+  const [parsingNatural, setParsingNatural] = createSignal(false);
   const [parsingForm, setParsingForm] = createSignal(false);
   const [chatMessages, setChatMessages] = createSignal<{ role: 'user' | 'ai', text: string }[]>([]);
-  const [nlpInput, setNlpInput] = createSignal('');
+  const [naturalInput, setNaturalInput] = createSignal('');
   const [isStreaming, setIsStreaming] = createSignal(false);
   const [itinerary, setItinerary] = createSignal<string[]>([]); // current itinerary as city names
   const [lastItinerary, setLastItinerary] = createSignal<string[]>([]); // for map update comparison
+  const [availableItineraries, setAvailableItineraries] = createSignal<{ cities: string[], label: string }[]>([]);
+  const [selectedItineraryIdx, setSelectedItineraryIdx] = createSignal(0);
 
   // Generate a new session token for each new search session
   function newSessionToken() {
@@ -102,10 +104,10 @@ export default function AskOllama(props: AskOllamaProps) {
     // Only run if itinerary changed
     if (itinerary().length === 0 || JSON.stringify(itinerary()) === JSON.stringify(lastItinerary())) {
       setWaypoints([]);
-      setParsingNlp(false);
+      setParsingNatural(false);
       return;
     }
-    setParsingNlp(true);
+    setParsingNatural(true);
     const geocoded: { lat: number, lon: number, name: string }[] = [];
     for (const name of itinerary()) {
       try {
@@ -121,7 +123,7 @@ export default function AskOllama(props: AskOllamaProps) {
       } catch (err) { /* skip point if error */ }
     }
     setWaypoints(geocoded);
-    setParsingNlp(false);
+    setParsingNatural(false);
   });
   // Parse AI answer for waypoints and geocode them (for Form tab)
   createEffect(async () => {
@@ -281,13 +283,13 @@ export default function AskOllama(props: AskOllamaProps) {
         <img src="/assets/images/biker.webp" alt="Background" class="w-full h-full object-cover object-center opacity-50" />
       </div>
       {/* Main card */}
-      <div class="overflow-hidden relative z-10 w-full max-w-4xl md:max-w-5xl lg:max-w-6xl p-8 md:p-0 rounded-3xl shadow-2xl bg-base-100/90 backdrop-blur-lg flex flex-col md:flex-row items-start justify-center" style={{ 'max-width': '1100px', 'max-height': '90%' }}>
+      <div class="overflow-hidden relative z-10 w-full max-w-4xl md:max-w-5xl lg:max-w-6xl p-8 md:p-0 rounded-3xl shadow-2xl bg-base-100/90 backdrop-blur-lg flex flex-col md:flex-row items-start justify-center h-full" style={{ 'max-width': '1100px', 'max-height': '70%' }}>
         <div class="w-full md:w-1/2">
-          <div class="tabs tabs-lift w-full mb-4">
-            <label class="tab cursor-pointer" classList={{'tab-active': activeTab() === 'nlp'}}>
-              <input type="radio" name="askollama_tabs" checked={activeTab() === 'nlp'} onChange={() => setActiveTab('nlp')} />
+          <div class="tabs tabs-lift w-full">
+            <label class="tab cursor-pointer" classList={{'tab-active': activeTab() === 'natural'}}>
+              <input type="radio" name="askollama_tabs" checked={activeTab() === 'natural'} onChange={() => setActiveTab('natural')} />
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 me-2"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" /></svg>
-              Ask AI
+              Natural
             </label>
             <label class="tab cursor-pointer" classList={{'tab-active': activeTab() === 'form'}}>
               <input type="radio" name="askollama_tabs" checked={activeTab() === 'form'} onChange={() => setActiveTab('form')} />
@@ -295,14 +297,31 @@ export default function AskOllama(props: AskOllamaProps) {
               Form
             </label>
           </div>
-          <div class="tab-content bg-base-100 border-base-300 p-6 flex flex-col h-[500px] md:h-[600px]" style={{ display: activeTab() === 'nlp' ? 'flex' : 'none' }}>
+          <div class="tab-content bg-base-100 border-base-300 p-6 flex flex-col h-[500px] md:h-[600px]" style={{ display: activeTab() === 'natural' ? 'flex' : 'none' }}>
             {/* Current itinerary display */}
-            <Show when={itinerary().length > 0}>
+            <Show when={availableItineraries().length > 0}>
               <div class="mb-4">
-                <div class="font-semibold mb-1">Current Itinerary:</div>
-                <ol class="list-decimal list-inside text-sm">
-                  {itinerary().map((city, i) => <li>{city}</li>)}
-                </ol>
+                <div class="font-semibold mb-1">Available Itineraries:</div>
+                <div class="flex flex-col gap-2">
+                  {availableItineraries().map((it, idx) => (
+                    <button
+                      class={`btn btn-xs ${selectedItineraryIdx() === idx ? 'btn-primary' : 'btn-outline'}`}
+                      onClick={() => {
+                        setSelectedItineraryIdx(idx);
+                        setItinerary(it.cities);
+                      }}
+                    >
+                      {it.label || `Itinerary ${idx + 1}`}
+                    </button>
+                  ))}
+                </div>
+                <div class="mt-2 text-xs text-gray-500">Click to select and show on map</div>
+                <div class="mt-2">
+                  <div class="font-semibold mb-1">Current Itinerary:</div>
+                  <ol class="list-decimal list-inside text-sm">
+                    {itinerary().map((city, i) => <li>{city}</li>)}
+                  </ol>
+                </div>
               </div>
             </Show>
             {/* Chat messages */}
@@ -318,7 +337,7 @@ export default function AskOllama(props: AskOllamaProps) {
               {isStreaming() && (
                 <div class="chat chat-start">
                   <div class="chat-bubble chat-bubble-secondary">
-                    {responseNlp()}
+                    {responseNatural()}
                     <span class="ml-2 loading loading-dots loading-xs align-middle"></span>
                   </div>
                 </div>
@@ -327,19 +346,19 @@ export default function AskOllama(props: AskOllamaProps) {
             {/* Input area */}
             <form class="flex gap-2 items-end" style={{ 'margin-top': 'auto' }} onSubmit={async e => {
               e.preventDefault();
-              const message = nlpInput().trim();
+              const message = naturalInput().trim();
               if (!message) return;
               setChatMessages([...chatMessages(), { role: 'user', text: message }]);
-              setNlpInput('');
+              setNaturalInput('');
               setIsStreaming(true);
-              setResponseNlp('');
-              setErrorNlp('');
+              setResponseNatural('');
+              setErrorNatural('');
               try {
                 const res = await fetch('/api/ai/ollama', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
-                    mode: 'nlp-convo',
+                    mode: 'natural-convo',
                     history: chatMessages(),
                     itinerary: itinerary(),
                     message,
@@ -350,58 +369,67 @@ export default function AskOllama(props: AskOllamaProps) {
                 const reader = res.body.getReader();
                 const decoder = new TextDecoder();
                 let fullText = '';
-                setResponseNlp('');
+                setResponseNatural('');
                 while (true) {
                   const { done, value } = await reader.read();
                   if (done) break;
                   const chunk = decoder.decode(value, { stream: true });
                   fullText += chunk;
-                  setResponseNlp(fullText);
+                  setResponseNatural(fullText);
                 }
-                // Try to parse the streamed response as a JSON array (itinerary)
-                let newItinerary: string[] = [];
-                let raw = fullText.trim();
-                if (raw.startsWith('```')) {
-                  raw = raw.replace(/^```[a-zA-Z]*\n?/, '').replace(/```$/, '').trim();
+                // Parse all JSON arrays in the response
+                const found: { cities: string[], label: string }[] = [];
+                const regex = /Cities for itinerary (\d+):\s*(\[[^\]]*\])/g;
+                let match;
+                while ((match = regex.exec(fullText)) !== null) {
+                  try {
+                    const arr = JSON.parse(match[2]);
+                    if (Array.isArray(arr)) {
+                      found.push({ cities: arr, label: `Itinerary ${match[1]}` });
+                    }
+                  } catch {}
                 }
-                try {
-                  newItinerary = JSON.parse(raw);
-                  if (!Array.isArray(newItinerary)) throw new Error('Not an array');
-                } catch (err) {
-                  // Not a valid itinerary, just treat as chat
-                  setChatMessages(msgs => [...msgs, { role: 'ai', text: fullText }]);
-                  setIsStreaming(false);
-                  return;
+                // Fallback: try to find any JSON array if none matched
+                if (found.length === 0) {
+                  const arrMatch = fullText.match(/\[([^\]]+)\]/);
+                  if (arrMatch) {
+                    try {
+                      const arr = JSON.parse(arrMatch[0]);
+                      if (Array.isArray(arr)) {
+                        found.push({ cities: arr, label: 'Itinerary 1' });
+                      }
+                    } catch {}
+                  }
                 }
-                // Only update if changed
-                if (JSON.stringify(newItinerary) !== JSON.stringify(itinerary())) {
-                  setItinerary(newItinerary);
-                  setLastItinerary(itinerary());
+                setAvailableItineraries(found);
+                if (found.length > 0) {
+                  setSelectedItineraryIdx(0);
+                  setItinerary(found[0].cities);
                 }
                 setChatMessages(msgs => [...msgs, { role: 'ai', text: fullText }]);
               } catch (err: any) {
-                setErrorNlp(err.message || 'Unknown error');
+                setErrorNatural(err.message || 'Unknown error');
               } finally {
                 setIsStreaming(false);
               }
             }}>
               <input
                 type="text"
-                name="nlp_question"
+                name="natural_question"
                 class="input input-bordered w-full"
                 placeholder="Type your question..."
-                value={nlpInput()}
-                onInput={e => setNlpInput(e.currentTarget.value)}
+                value={naturalInput()}
+                onInput={e => setNaturalInput(e.currentTarget.value)}
                 disabled={isStreaming()}
                 autocomplete="off"
               />
-              <button type="submit" class="btn btn-primary" disabled={isStreaming() || !nlpInput().trim()}>
+              <button type="submit" class="btn btn-primary" disabled={isStreaming() || !naturalInput().trim()}>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                 </svg>
               </button>
             </form>
-            {errorNlp() && <div class="alert alert-error mt-2">{t(lang, 'error')}: {errorNlp()}</div>}
+            {errorNatural() && <div class="alert alert-error mt-2">{t(lang, 'error')}: {errorNatural()}</div>}
           </div>
           <div class="tab-content bg-base-100 border-base-300 p-6" style={{ display: activeTab() === 'form' ? 'block' : 'none' }}>
             <form onSubmit={async (e: Event) => {
@@ -631,8 +659,8 @@ export default function AskOllama(props: AskOllamaProps) {
             )}
           </div>
         </div>
-        <div class="w-full md:w-1/2 flex flex-col items-center">
-          <div ref={el => (mapRef = el as HTMLDivElement)} style={{ height: '600px', width: '100%' }} />
+        <div class="w-full md:w-1/2 flex flex-col items-center h-full">
+          <div ref={el => (mapRef = el as HTMLDivElement)} class="w-full h-full min-h-[300px]" />
         </div>
       </div>
     </div>

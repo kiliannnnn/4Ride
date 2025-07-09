@@ -42,7 +42,22 @@ export const POST: APIRoute = async ({ request }) => {
     else if (body.lang === 'jp') langInstruction = 'Answer in Japanese.';
     else langInstruction = 'Answer in English.';
 
-    if (mode === 'nlp-convo') {
+    if (mode === 'natural-convo') {
+      const { history, itinerary, message, lang } = body;
+      // Build a conversational prompt with advanced trip planning instructions
+      let langInstruction = '';
+      if (lang === 'fr') langInstruction = 'Réponds en français.';
+      else if (lang === 'es') langInstruction = 'Responde en español.';
+      else if (lang === 'jp') langInstruction = '日本語で答えてください。';
+      else langInstruction = 'Answer in English.';
+      const convo = (history || []).map((m: any) => `${m.role === 'user' ? 'User' : 'AI'}: ${m.text}`).join('\n');
+      const itineraryText = Array.isArray(itinerary) && itinerary.length > 0 ? `The current itinerary is: [${itinerary.map((c: string) => '"' + c + '"').join(', ')}].` : '';
+      prompt = `You are an expert motorcycle road trip planner.\n
+Your goal is to generate logical, enjoyable, and smooth motorcycle loops of 150-200 km, lasting 3-4 hours (excluding breaks), starting and ending at the same city. Prioritize twisty, mountain, and scenic roads. Integrate as many accessible mountain passes (e.g., Semnoz, Forclaz, etc.) as possible. Avoid highways, long straight national roads, and dense urban areas. Never repeat the same road unless absolutely necessary. Avoid illogical loops or U-turns. Favor routes with a good sequence of curves and little traffic.\n
+${itineraryText}\n${convo}\nUser: ${message}\n
+Suggest multiple (at least 2) different itineraries, and for each, present the pros and cons.\n
+For each itinerary, at the end of your answer, output ONLY the list of main cities or towns to pass through, in order, as a valid JSON array (no markdown, no explanation, no code block, just the JSON array), clearly marked as 'Cities for itinerary 1:' and 'Cities for itinerary 2:' etc.\n${langInstruction}`;
+    } else if (mode === 'nlp-convo') {
       const { history, itinerary, message, lang } = body;
       // Build a conversational prompt
       let langInstruction = '';
