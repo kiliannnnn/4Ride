@@ -1,6 +1,96 @@
 ---
 import Layout from "@/layouts/Main.astro";
+import { Icon } from "astro-icon/components";
 ---
 
 <Layout>
+    <!-- Hero -->
+    <section
+        class="flex flex-col items-center justify-center py-12 mb-8 w-full"
+    >
+        <h1
+            class="text-4xl md:text-5xl font-extrabold text-primary mb-2 text-center"
+        >
+            About 4Ride
+        </h1>
+        <p
+            class="text-lg md:text-xl text-base-content/80 text-center max-w-2xl"
+        >
+            Welcome to the Ultimate Biker Community
+        </p>
+    </section>
+
+    <main class="w-full max-w-3xl mx-auto flex flex-col gap-12 px-4 md:px-0">
+        <section>
+            <h2 class="text-2xl font-bold mb-2 flex items-center gap-2">
+                <Icon name="flag" class="w-7 h-7 md:w-8 md:h-8 text-primary" />
+                Our Mission
+            </h2>
+            <p class="text-base-content/80 mb-2">
+                Make every ride unforgettable:
+            </p>
+            <ul class="list-disc ml-6 text-base-content/80 space-y-1">
+                <li>Connect bikers from all over the world</li>
+                <li>Simplify the organization of rides</li>
+                <li>Optimize every kilometer traveled</li>
+                <li>Create unforgettable memories on the road</li>
+            </ul>
+        </section>
+        <div class="divider"></div>
+        <section>
+            <h2 class="text-2xl font-bold mb-2 flex items-center gap-2">
+                <Icon name="memory" class="w-7 h-7 md:w-8 md:h-8 text-primary" />
+                Technology
+            </h2>
+            <ul class="list-disc ml-6 text-base-content/80 space-y-1">
+                <li>
+                    <b>Smart Planning:</b> AI analyzes schedules, preferences, and weather to suggest the best times to ride.
+                </li>
+                <li>
+                    <b>Personalized Routes:</b> Routes tailored to your riding style and available time.
+                </li>
+                <li>
+                    <b>Effortless Coordination:</b> Automatic calendar sync and smart notifications.
+                </li>
+            </ul>
+        </section>
+        <div class="divider"></div>
+        <section>
+            <h2 class="text-2xl font-bold mb-2 flex items-center gap-2">
+                <Icon name="groups" class="w-7 h-7 md:w-8 md:h-8 text-primary" />
+                Community
+            </h2>
+            <ul class="list-disc ml-6 text-base-content/80 space-y-1">
+                <li>100% motorcycle-dedicated social network</li>
+                <li>Private groups for your clubs or rider friends</li>
+                <li>Real-time chat before, during, and after rides</li>
+                <li>Share your best road trip photos and videos</li>
+                <li>Like and comment system to interact with the community</li>
+            </ul>
+        </section>
+        <div class="divider"></div>
+        <section>
+            <h2 class="text-2xl font-bold mb-2 flex items-center gap-2">
+                <Icon name="shield-lock" class="w-7 h-7 md:w-8 md:h-8 text-primary" />
+                Security & Privacy
+            </h2>
+            <p class="text-base-content/80">
+                Your data and security are our priority. Advanced encryption and strict GDPR compliance.
+            </p>
+        </section>
+        <div class="divider"></div>
+        <section class="flex flex-col items-center gap-4">
+            <button class="btn btn-accent btn-lg"
+                >Download the app</button
+            >
+            <blockquote
+                class="italic text-center text-base-content/70 border-l-4 border-accent pl-4 max-w-xl mx-auto"
+            >
+                "It's not the destination that matters, but the journey... and who you share it with."
+            </blockquote>
+            <p class="font-semibold text-right w-full max-w-xl mx-auto">
+                The 4Ride Team – By bikers, for bikers.
+            </p>
+        </section>
+    </main>
 </Layout>

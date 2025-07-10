@@ -1,6 +1,101 @@
 ---
 import Layout from "@/layouts/Main.astro";
+import { Icon } from "astro-icon/components";
 ---
 
 <Layout>
+    <!-- Hero -->
+    <section
+        class="flex flex-col items-center justify-center py-12 mb-8 w-full"
+    >
+        <h1
+            class="text-4xl md:text-5xl font-extrabold text-primary mb-2 text-center"
+        >
+            À Propos de 4Ride
+        </h1>
+        <p
+            class="text-lg md:text-xl text-base-content/80 text-center max-w-2xl"
+        >
+            Bienvenue dans la Communauté Ultime des Motards
+        </p>
+    </section>
+
+    <main class="w-full max-w-3xl mx-auto flex flex-col gap-12 px-4 md:px-0">
+        <section>
+            <h2 class="text-2xl font-bold mb-2 flex items-center gap-2">
+                <Icon name="flag" class="w-7 h-7 md:w-8 md:h-8 text-primary" />
+                Notre Mission
+            </h2>
+            <p class="text-base-content/80 mb-2">
+                Rendre chaque sortie inoubliable :
+            </p>
+            <ul class="list-disc ml-6 text-base-content/80 space-y-1">
+                <li>Connecter les motards du monde entier</li>
+                <li>Simplifier l'organisation des sorties</li>
+                <li>Optimiser chaque kilomètre parcouru</li>
+                <li>Créer des souvenirs inoubliables sur la route</li>
+            </ul>
+        </section>
+        <div class="divider"></div>
+        <section>
+            <h2 class="text-2xl font-bold mb-2 flex items-center gap-2">
+                <Icon name="memory" class="w-7 h-7 md:w-8 md:h-8 text-primary" />
+                Technologie
+            </h2>
+            <ul class="list-disc ml-6 text-base-content/80 space-y-1">
+                <li>
+                    <b>Planification Intelligente :</b> IA qui analyse agendas, préférences
+                    et météo pour proposer les meilleurs créneaux.
+                </li>
+                <li>
+                    <b>Itinéraires Personnalisés :</b> Parcours adaptés à votre style
+                    et temps disponible.
+                </li>
+                <li>
+                    <b>Coordination Sans Effort :</b> Synchronisation automatique
+                    des calendriers et notifications intelligentes.
+                </li>
+            </ul>
+        </section>
+        <div class="divider"></div>
+        <section>
+            <h2 class="text-2xl font-bold mb-2 flex items-center gap-2">
+                <Icon name="groups" class="w-7 h-7 md:w-8 md:h-8 text-primary" />
+                Communauté
+            </h2>
+            <ul class="list-disc ml-6 text-base-content/80 space-y-1">
+                <li>Réseau social dédié 100% moto</li>
+                <li>Groupes privés pour clubs ou amis riders</li>
+                <li>Chat en temps réel avant, pendant et après les sorties</li>
+                <li>Partage de photos et vidéos de road trips</li>
+                <li>Likes et commentaires pour interagir</li>
+            </ul>
+        </section>
+        <div class="divider"></div>
+        <section>
+            <h2 class="text-2xl font-bold mb-2 flex items-center gap-2">
+                <Icon name="shield-lock" class="w-7 h-7 md:w-8 md:h-8 text-primary" />
+                Sécurité & Confidentialité
+            </h2>
+            <p class="text-base-content/80">
+                Vos données et votre sécurité sont notre priorité. Chiffrement
+                avancé et respect strict du RGPD.
+            </p>
+        </section>
+        <div class="divider"></div>
+        <section class="flex flex-col items-center gap-4">
+            <button class="btn btn-accent btn-lg"
+                >Télécharger l'application</button
+            >
+            <blockquote
+                class="italic text-center text-base-content/70 border-l-4 border-accent pl-4 max-w-xl mx-auto"
+            >
+                "Ce n'est pas la destination qui compte, mais le chemin
+                parcouru... et avec qui vous le parcourez."
+            </blockquote>
+            <p class="font-semibold text-right w-full max-w-xl mx-auto">
+                L'équipe 4Ride - Des motards, pour les motards.
+            </p>
+        </section>
+    </main>
 </Layout>

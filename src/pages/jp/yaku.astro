@@ -1,6 +1,96 @@
 ---
 import Layout from "@/layouts/Main.astro";
+import { Icon } from "astro-icon/components";
 ---
 
 <Layout>
+    <!-- Hero -->
+    <section
+        class="flex flex-col items-center justify-center py-12 mb-8 w-full"
+    >
+        <h1
+            class="text-4xl md:text-5xl font-extrabold text-primary mb-2 text-center"
+        >
+            4Rideについて
+        </h1>
+        <p
+            class="text-lg md:text-xl text-base-content/80 text-center max-w-2xl"
+        >
+            究極のライダーコミュニティへようこそ
+        </p>
+    </section>
+
+    <main class="w-full max-w-3xl mx-auto flex flex-col gap-12 px-4 md:px-0">
+        <section>
+            <h2 class="text-2xl font-bold mb-2 flex items-center gap-2">
+                <Icon name="flag" class="w-7 h-7 md:w-8 md:h-8 text-primary" />
+                私たちのミッション
+            </h2>
+            <p class="text-base-content/80 mb-2">
+                すべてのツーリングを忘れられないものに：
+            </p>
+            <ul class="list-disc ml-6 text-base-content/80 space-y-1">
+                <li>世界中のライダーをつなぐ</li>
+                <li>ツーリングの計画を簡単に</li>
+                <li>走るすべての距離を最適化</li>
+                <li>道中で忘れられない思い出を作る</li>
+            </ul>
+        </section>
+        <div class="divider"></div>
+        <section>
+            <h2 class="text-2xl font-bold mb-2 flex items-center gap-2">
+                <Icon name="memory" class="w-7 h-7 md:w-8 md:h-8 text-primary" />
+                テクノロジー
+            </h2>
+            <ul class="list-disc ml-6 text-base-content/80 space-y-1">
+                <li>
+                    <b>スマートプランニング：</b> AIがスケジュール、好み、天候を分析し、最適なツーリングタイミングを提案します。
+                </li>
+                <li>
+                    <b>パーソナライズされたルート：</b> あなたの走り方や時間に合わせたルートを生成。
+                </li>
+                <li>
+                    <b>シームレスな連携：</b> カレンダーの自動同期とスマート通知。
+                </li>
+            </ul>
+        </section>
+        <div class="divider"></div>
+        <section>
+            <h2 class="text-2xl font-bold mb-2 flex items-center gap-2">
+                <Icon name="groups" class="w-7 h-7 md:w-8 md:h-8 text-primary" />
+                コミュニティ
+            </h2>
+            <ul class="list-disc ml-6 text-base-content/80 space-y-1">
+                <li>100%バイク専用のソーシャルネットワーク</li>
+                <li>クラブや友人ライダーのためのプライベートグループ</li>
+                <li>ツーリング前・中・後のリアルタイムチャット</li>
+                <li>旅の写真や動画をシェア</li>
+                <li>いいね＆コメントでコミュニティと交流</li>
+            </ul>
+        </section>
+        <div class="divider"></div>
+        <section>
+            <h2 class="text-2xl font-bold mb-2 flex items-center gap-2">
+                <Icon name="shield-lock" class="w-7 h-7 md:w-8 md:h-8 text-primary" />
+                セキュリティとプライバシー
+            </h2>
+            <p class="text-base-content/80">
+                あなたのデータと安全が最優先です。高度な暗号化と厳格なGDPR準拠。
+            </p>
+        </section>
+        <div class="divider"></div>
+        <section class="flex flex-col items-center gap-4">
+            <button class="btn btn-accent btn-lg"
+                >アプリをダウンロード</button
+            >
+            <blockquote
+                class="italic text-center text-base-content/70 border-l-4 border-accent pl-4 max-w-xl mx-auto"
+            >
+                「大切なのは目的地ではなく、どんな道を誰と走るか。」
+            </blockquote>
+            <p class="font-semibold text-right w-full max-w-xl mx-auto">
+                4Rideチーム – ライダーによる、ライダーのための。
+            </p>
+        </section>
+    </main>
 </Layout>
