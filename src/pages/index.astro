@@ -31,6 +31,49 @@ try {
 
 <Layout>
   <div>
+    <h2>Debug: Create Vehicle (POST)</h2>
+    <form id="debug-create-form">
+      <label>Brand* <input name="brand" required /></label>
+      <label>Model <input name="model" /></label>
+      <label>Year <input name="year" type="number" /></label>
+      <label>Engine Size <input name="engine_size" type="number" /></label>
+      <label>Mileage <input name="mileage" type="number" /></label>
+      <button type="submit">Create</button>
+    </form>
+    <div id="debug-create-result"></div>
+    <script type="module">
+      const form = document.getElementById('debug-create-form');
+      const resultDiv = document.getElementById('debug-create-result');
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        resultDiv.textContent = 'Submitting...';
+        const data = Object.fromEntries(new FormData(form));
+        // Convert number fields
+        if (data.year) data.year = Number(data.year);
+        if (data.engine_size) data.engine_size = Number(data.engine_size);
+        if (data.mileage) data.mileage = Number(data.mileage);
+        try {
+          const res = await fetch('/api/vehicles/debug-create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+          });
+          const json = await res.json();
+          if (res.ok) {
+            resultDiv.textContent = 'Created: ' + JSON.stringify(json.vehicle);
+            form.reset();
+            // Optionally, reload the page or fetch new lists
+            setTimeout(() => window.location.reload(), 1000);
+          } else {
+            resultDiv.textContent = 'Error: ' + (json.error || 'Unknown error');
+          }
+        } catch (err) {
+          resultDiv.textContent = 'Network error';
+        }
+      });
+    </script>
+  </div>
+  <div>
     <h2>Debug: Vehicles (Direct Supabase)</h2>
     <ul>
       {vehicles.slice(0, 5).map((vehicle: Vehicle) => (
