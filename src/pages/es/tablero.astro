@@ -9,18 +9,18 @@ import type { Tables } from '@/database.types';
 
 const user = Astro.locals.sb_user;
 
-// Get user profile
+// Obtener el perfil del usuario
 let userProfile = null;
 if (user) {
   try {
     const profiles = await supabase.from('user_profile').select('*').eq('user_id', user.id).single();
     userProfile = profiles.data;
   } catch (error) {
-    console.error('Error fetching user profile:', error);
+    console.error('Error al obtener el perfil del usuario:', error);
   }
 }
 
-// Get user's vehicles
+// Obtener los vehículos del usuario
 let userVehicles: Tables<'vehicles'>[] = [];
 if (user) {
   try {
@@ -32,11 +32,11 @@ if (user) {
       userVehicles = allVehicles.filter(vehicle => vehicleIds.includes(vehicle.id));
     }
   } catch (error) {
-    console.error('Error fetching user vehicles:', error);
+    console.error('Error al obtener los vehículos:', error);
   }
 }
 
-// Get user's prompt history
+// Obtener el historial de conversaciones IA
 let promptHistory: Tables<'prompts_history'>[] = [];
 if (user) {
   try {
@@ -50,7 +50,7 @@ if (user) {
       promptHistory = data;
     }
   } catch (error) {
-    console.error('Error fetching prompt history:', error);
+    console.error('Error al obtener el historial de IA:', error);
   }
 }
 ---
@@ -58,60 +58,60 @@ if (user) {
 <Layout>
   <section class="flex flex-col items-center justify-center py-12 mb-8 w-full">
     <h1 class="text-4xl md:text-5xl font-extrabold text-primary mb-2 text-center">
-      Tableau de bord
+      Panel de control
     </h1>
     <p class="text-lg md:text-xl text-base-content/80 text-center max-w-2xl">
-      Bienvenue sur votre espace personnel 4Ride !
+      ¡Bienvenido a tu espacio personal 4Ride!
     </p>
   </section>
   <main class="w-full max-w-5xl mx-auto flex flex-col gap-12 px-4 md:px-0">
-    <!-- Stats -->
+    <!-- Estadísticas -->
     <section>
       <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
         <Icon name="stat" class="w-7 h-7 md:w-8 md:h-8 text-primary" />
-        Statistiques rapides
+        Estadísticas rápidas
       </h2>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div class="stat bg-base-100 shadow rounded-lg flex flex-col items-center">
           <div class="stat-figure text-primary"><Icon name="road" class="w-8 h-8" /></div>
-          <div class="stat-title">Total kilomètres</div>
+          <div class="stat-title">Total kilómetros</div>
           <div class="stat-value text-primary">{userProfile?.mileage || 0} km</div>
-          <div class="stat-desc">Distance totale parcourue</div>
+          <div class="stat-desc">Distancia total recorrida</div>
         </div>
         <div class="stat bg-base-100 shadow rounded-lg flex flex-col items-center">
           <div class="stat-figure text-secondary"><Icon name="motorcycle" class="w-8 h-8" /></div>
-          <div class="stat-title">Véhicules possédés</div>
+          <div class="stat-title">Vehículos propios</div>
           <div class="stat-value text-secondary">{userVehicles.length}</div>
-          <div class="stat-desc">Nombre de véhicules</div>
+          <div class="stat-desc">Cantidad de vehículos</div>
         </div>
         <div class="stat bg-base-100 shadow rounded-lg flex flex-col items-center">
           <div class="stat-figure text-accent"><Icon name="chat" class="w-8 h-8" /></div>
-          <div class="stat-title">Conversations IA</div>
+          <div class="stat-title">Conversaciones IA</div>
           <div class="stat-value text-accent">{promptHistory.length}</div>
-          <div class="stat-desc">Interactions récentes</div>
+          <div class="stat-desc">Interacciones recientes</div>
         </div>
       </div>
     </section>
     <div class="divider"></div>
-    <!-- Vehicles Section -->
+    <!-- Sección Vehículos -->
     <section>
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold flex items-center gap-2">
           <Icon name="motorcycle" class="w-7 h-7 md:w-8 md:h-8 text-primary" />
-          Mes véhicules
+          Mis vehículos
         </h2>
         <button class="btn btn-primary" onclick="document.getElementById('add_vehicle_modal').showModal()">
           <Icon name="add" class="w-5 h-5" />
-          Ajouter un véhicule
+          Añadir vehículo
         </button>
       </div>
       {userVehicles.length === 0 ? (
         <div class="text-center py-8">
           <Icon name="motorcycle" class="w-16 h-16 mx-auto text-gray-400 mb-4" />
-          <h3 class="text-lg font-semibold mb-2">Aucun véhicule</h3>
-          <p class="text-gray-600 mb-4">Ajoutez votre premier véhicule pour suivre vos sorties</p>
+          <h3 class="text-lg font-semibold mb-2">Ningún vehículo</h3>
+          <p class="text-gray-600 mb-4">Agrega tu primer vehículo para seguir tus rutas</p>
           <button class="btn btn-primary" onclick="document.getElementById('add_vehicle_modal').showModal()">
-            Ajouter un véhicule
+            Añadir vehículo
           </button>
         </div>
       ) : (
@@ -129,21 +129,21 @@ if (user) {
                       <Icon name="more-vert" class="w-5 h-5" />
                     </div>
                     <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                      <li><button data-vehicle-id={`${vehicle.id}`} data-vehicle-brand={`${vehicle.brand}`} data-vehicle-model={`${vehicle.model}`} data-vehicle-year={`${vehicle.year || ''}`} data-vehicle-engine={`${vehicle.engine_size || ''}`} data-vehicle-mileage={`${vehicle.mileage || ''}`} class="edit-vehicle-btn">Modifier</button></li>
-                      <li><button data-vehicle-id={`${vehicle.id}`} class="delete-vehicle-btn text-error">Supprimer</button></li>
+                      <li><button data-vehicle-id={`${vehicle.id}`} data-vehicle-brand={`${vehicle.brand}`} data-vehicle-model={`${vehicle.model}`} data-vehicle-year={`${vehicle.year || ''}`} data-vehicle-engine={`${vehicle.engine_size || ''}`} data-vehicle-mileage={`${vehicle.mileage || ''}`} class="edit-vehicle-btn">Editar</button></li>
+                      <li><button data-vehicle-id={`${vehicle.id}`} class="delete-vehicle-btn text-error">Eliminar</button></li>
                     </ul>
                   </div>
                 </div>
                 <div class="mt-4 space-y-2">
                   {vehicle.engine_size && (
                     <div class="flex justify-between">
-                      <span class="text-sm text-gray-600">Cylindrée :</span>
+                      <span class="text-sm text-gray-600">Cilindrada:</span>
                       <span class="text-sm font-medium">{vehicle.engine_size}cc</span>
                     </div>
                   )}
                   {vehicle.mileage && (
                     <div class="flex justify-between">
-                      <span class="text-sm text-gray-600">Kilométrage :</span>
+                      <span class="text-sm text-gray-600">Kilometraje:</span>
                       <span class="text-sm font-medium">{vehicle.mileage} km</span>
                     </div>
                   )}
@@ -155,25 +155,25 @@ if (user) {
       )}
     </section>
     <div class="divider"></div>
-    <!-- AI Chat History Section -->
+    <!-- Sección Historial IA -->
     <section>
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold flex items-center gap-2">
           <Icon name="chat" class="w-7 h-7 md:w-8 md:h-8 text-primary" />
-          Historique des conversations IA
+          Historial de conversaciones IA
         </h2>
         <a href="/" class="btn btn-outline">
           <Icon name="add" class="w-5 h-5" />
-          Nouvelle conversation
+          Nueva conversación
         </a>
       </div>
       {promptHistory.length === 0 ? (
         <div class="text-center py-8">
           <Icon name="chat" class="w-16 h-16 mx-auto text-gray-400 mb-4" />
-          <h3 class="text-lg font-semibold mb-2">Aucune conversation</h3>
-          <p class="text-gray-600 mb-4">Commencez une conversation avec l'IA pour voir votre historique ici</p>
+          <h3 class="text-lg font-semibold mb-2">Ninguna conversación</h3>
+          <p class="text-gray-600 mb-4">Inicia una conversación con la IA para ver tu historial aquí</p>
           <a href="/" class="btn btn-primary">
-            Démarrer une conversation
+            Iniciar conversación
           </a>
         </div>
       ) : (
@@ -185,17 +185,17 @@ if (user) {
                   <div class="flex-1">
                     <div class="flex items-center gap-2 mb-2">
                       <span class="text-sm text-gray-500">
-                        {new Date(prompt.created_at).toLocaleDateString()} à {new Date(prompt.created_at).toLocaleTimeString()}
+                        {new Date(prompt.created_at).toLocaleDateString('es-ES')} a las {new Date(prompt.created_at).toLocaleTimeString('es-ES')}
                       </span>
                     </div>
                     <div class="space-y-2">
                       <div>
-                        <h4 class="font-semibold text-sm text-gray-700 mb-1">Votre question :</h4>
+                        <h4 class="font-semibold text-sm text-gray-700 mb-1">Tu pregunta:</h4>
                         <p class="text-sm bg-base-100 p-2 rounded">{prompt.user_input}</p>
                       </div>
                       {prompt.answer && (
                         <div>
-                          <h4 class="font-semibold text-sm text-gray-700 mb-1">Réponse IA :</h4>
+                          <h4 class="font-semibold text-sm text-gray-700 mb-1">Respuesta IA:</h4>
                           <p class="text-sm bg-base-100 p-2 rounded line-clamp-3">{prompt.answer}</p>
                         </div>
                       )}
@@ -206,7 +206,7 @@ if (user) {
                       <Icon name="more-vert" class="w-5 h-5" />
                     </div>
                     <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                      <li><button data-prompt-id={`${prompt.id}`} class="delete-prompt-btn text-error">Supprimer</button></li>
+                      <li><button data-prompt-id={`${prompt.id}`} class="delete-prompt-btn text-error">Eliminar</button></li>
                     </ul>
                   </div>
                 </div>
@@ -218,23 +218,23 @@ if (user) {
     </section>
   </main>
 
-  <!-- Add Vehicle Modal -->
+  <!-- Modal Añadir Vehículo -->
   <dialog id="add_vehicle_modal" class="modal">
     <div class="modal-box max-w-2xl">
       <div class="flex items-center gap-3 mb-6">
         <div class="bg-primary/10 p-2 rounded-full">
           <Icon name="motorcycle" class="w-6 h-6 text-primary" />
         </div>
-        <h3 class="font-bold text-xl">Ajouter un véhicule</h3>
+        <h3 class="font-bold text-xl">Añadir vehículo</h3>
       </div>
       <form id="add-vehicle-form" class="space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="form-control">
             <label class="label">
-              <span class="label-text font-medium">Marque *</span>
+              <span class="label-text font-medium">Marca *</span>
             </label>
             <select name="brand" class="select select-bordered w-full" required>
-              <option value="">Sélectionner la marque</option>
+              <option value="">Seleccionar marca</option>
               <option value="Honda">Honda</option>
               <option value="Suzuki">Suzuki</option>
               <option value="Yamaha">Yamaha</option>
@@ -249,63 +249,63 @@ if (user) {
           </div>
           <div class="form-control">
             <label class="label">
-              <span class="label-text font-medium">Modèle *</span>
+              <span class="label-text font-medium">Modelo *</span>
             </label>
-            <input type="text" name="model" class="input input-bordered w-full" placeholder="ex: CBR600RR" required />
+            <input type="text" name="model" class="input input-bordered w-full" placeholder="ej: CBR600RR" required />
           </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="form-control">
             <label class="label">
-              <span class="label-text font-medium">Année</span>
+              <span class="label-text font-medium">Año</span>
             </label>
             <input type="number" name="year" class="input input-bordered w-full" placeholder="2020" min="1900" max={new Date().getFullYear()} />
           </div>
           <div class="form-control">
             <label class="label">
-              <span class="label-text font-medium">Cylindrée (cc)</span>
+              <span class="label-text font-medium">Cilindrada (cc)</span>
             </label>
             <input type="number" name="engine_size" class="input input-bordered w-full" placeholder="600" min="50" max="3000" />
           </div>
           <div class="form-control">
             <label class="label">
-              <span class="label-text font-medium">Kilométrage actuel (km)</span>
+              <span class="label-text font-medium">Kilometraje actual (km)</span>
             </label>
             <input type="number" name="mileage" class="input input-bordered w-full" placeholder="15000" min="0" />
           </div>
         </div>
         <div class="modal-action pt-4">
-          <button type="button" class="btn btn-ghost close-modal-btn" data-modal={`add_vehicle_modal`}>Annuler</button>
+          <button type="button" class="btn btn-ghost close-modal-btn" data-modal={`add_vehicle_modal`}>Cancelar</button>
           <button type="submit" class="btn btn-primary">
             <Icon name="add" class="w-5 h-5 mr-2" />
-            Ajouter
+            Añadir
           </button>
         </div>
       </form>
     </div>
     <form method="dialog" class="modal-backdrop">
-      <button>fermer</button>
+      <button>cerrar</button>
     </form>
   </dialog>
 
-  <!-- Edit Vehicle Modal -->
+  <!-- Modal Editar Vehículo -->
   <dialog id="edit_vehicle_modal" class="modal">
     <div class="modal-box max-w-2xl">
       <div class="flex items-center gap-3 mb-6">
         <div class="bg-secondary/10 p-2 rounded-full">
           <Icon name="motorcycle" class="w-6 h-6 text-secondary" />
         </div>
-        <h3 class="font-bold text-xl">Modifier le véhicule</h3>
+        <h3 class="font-bold text-xl">Editar vehículo</h3>
       </div>
       <form id="edit-vehicle-form" class="space-y-4">
         <input type="hidden" name="vehicle_id" id="edit_vehicle_id" />
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="form-control">
             <label class="label">
-              <span class="label-text font-medium">Marque *</span>
+              <span class="label-text font-medium">Marca *</span>
             </label>
             <select name="brand" id="edit_vehicle_brand" class="select select-bordered w-full" required>
-              <option value="">Sélectionner la marque</option>
+              <option value="">Seleccionar marca</option>
               <option value="Honda">Honda</option>
               <option value="Suzuki">Suzuki</option>
               <option value="Yamaha">Yamaha</option>
@@ -320,48 +320,48 @@ if (user) {
           </div>
           <div class="form-control">
             <label class="label">
-              <span class="label-text font-medium">Modèle *</span>
+              <span class="label-text font-medium">Modelo *</span>
             </label>
-            <input type="text" name="model" id="edit_vehicle_model" class="input input-bordered w-full" placeholder="ex: CBR600RR" required />
+            <input type="text" name="model" id="edit_vehicle_model" class="input input-bordered w-full" placeholder="ej: CBR600RR" required />
           </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="form-control">
             <label class="label">
-              <span class="label-text font-medium">Année</span>
+              <span class="label-text font-medium">Año</span>
             </label>
             <input type="number" name="year" id="edit_vehicle_year" class="input input-bordered w-full" placeholder="2020" min="1900" max={new Date().getFullYear()} />
           </div>
           <div class="form-control">
             <label class="label">
-              <span class="label-text font-medium">Cylindrée (cc)</span>
+              <span class="label-text font-medium">Cilindrada (cc)</span>
             </label>
             <input type="number" name="engine_size" id="edit_vehicle_engine_size" class="input input-bordered w-full" placeholder="600" min="50" max="3000" />
           </div>
           <div class="form-control">
             <label class="label">
-              <span class="label-text font-medium">Kilométrage actuel (km)</span>
+              <span class="label-text font-medium">Kilometraje actual (km)</span>
             </label>
             <input type="number" name="mileage" id="edit_vehicle_mileage" class="input input-bordered w-full" placeholder="15000" min="0" />
           </div>
         </div>
         <div class="modal-action pt-4">
-          <button type="button" class="btn btn-ghost close-modal-btn" data-modal={`edit_vehicle_modal`}>Annuler</button>
+          <button type="button" class="btn btn-ghost close-modal-btn" data-modal={`edit_vehicle_modal`}>Cancelar</button>
           <button type="submit" class="btn btn-secondary">
             <Icon name="edit" class="w-5 h-5 mr-2" />
-            Modifier
+            Editar
           </button>
         </div>
       </form>
     </div>
     <form method="dialog" class="modal-backdrop">
-      <button>fermer</button>
+      <button>cerrar</button>
     </form>
   </dialog>
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // Edit vehicle button event listeners
+      // Botones Editar vehículo
       document.querySelectorAll('.edit-vehicle-btn').forEach((button) => {
         button.addEventListener('click', function(this: HTMLElement) {
           const vehicleId = this.getAttribute('data-vehicle-id');
@@ -370,7 +370,7 @@ if (user) {
           const year = this.getAttribute('data-vehicle-year');
           const engineSize = this.getAttribute('data-vehicle-engine');
           const mileage = this.getAttribute('data-vehicle-mileage');
-          // Populate the edit modal
+          // Rellenar el modal de edición
           const idInput = document.getElementById('edit_vehicle_id') as HTMLInputElement;
           const brandSelect = document.getElementById('edit_vehicle_brand') as HTMLSelectElement;
           const modelInput = document.getElementById('edit_vehicle_model') as HTMLInputElement;
@@ -387,31 +387,31 @@ if (user) {
           if (modal && typeof modal.showModal === 'function') modal.showModal();
         });
       });
-      // Delete vehicle button event listeners
+      // Botones Eliminar vehículo
       document.querySelectorAll('.delete-vehicle-btn').forEach((button) => {
         button.addEventListener('click', function(this: HTMLElement) {
           const vehicleId = this.getAttribute('data-vehicle-id');
-          if (confirm('Supprimer ce véhicule ?')) {
+          if (confirm('¿Eliminar este vehículo?')) {
             fetch(`/api/vehicles/${vehicleId}`, { method: 'DELETE' }).then(response => {
               if (response.ok) window.location.reload();
-              else alert('Erreur lors de la suppression');
+              else alert('Error al eliminar');
             });
           }
         });
       });
-      // Delete prompt button event listeners
+      // Botones Eliminar conversación IA
       document.querySelectorAll('.delete-prompt-btn').forEach((button) => {
         button.addEventListener('click', function(this: HTMLElement) {
           const promptId = this.getAttribute('data-prompt-id');
-          if (confirm('Supprimer cette conversation ?')) {
+          if (confirm('¿Eliminar esta conversación?')) {
             fetch(`/api/prompts/${promptId}`, { method: 'DELETE' }).then(response => {
               if (response.ok) window.location.reload();
-              else alert('Erreur lors de la suppression');
+              else alert('Error al eliminar');
             });
           }
         });
       });
-      // Close modal button event listeners
+      // Botones Cerrar modal
       document.querySelectorAll('.close-modal-btn').forEach((button) => {
         button.addEventListener('click', function(this: HTMLElement) {
           const modalId = this.getAttribute('data-modal');
@@ -419,7 +419,7 @@ if (user) {
           if (modal && typeof modal.close === 'function') modal.close();
         });
       });
-      // Add Vehicle form handler
+      // Formulario Añadir vehículo
       const addVehicleForm = document.getElementById('add-vehicle-form');
       if (addVehicleForm) {
         addVehicleForm.addEventListener('submit', async function(e) {
@@ -439,10 +439,10 @@ if (user) {
             body: JSON.stringify(data)
           });
           if (res.ok) window.location.reload();
-          else alert('Erreur lors de l\'ajout');
+          else alert('Error al añadir');
         });
       }
-      // Edit Vehicle form handler
+      // Formulario Editar vehículo
       const editVehicleForm = document.getElementById('edit-vehicle-form');
       if (editVehicleForm) {
         editVehicleForm.addEventListener('submit', async function(e) {
@@ -465,9 +465,9 @@ if (user) {
             body: JSON.stringify(data)
           });
           if (res.ok) window.location.reload();
-          else alert('Erreur lors de la modification');
+          else alert('Error al editar');
         });
       }
     });
   </script>
-</Layout>
+</Layout> 

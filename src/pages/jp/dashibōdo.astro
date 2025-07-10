@@ -9,18 +9,18 @@ import type { Tables } from '@/database.types';
 
 const user = Astro.locals.sb_user;
 
-// Get user profile
+// ユーザープロフィールを取得
 let userProfile = null;
 if (user) {
   try {
     const profiles = await supabase.from('user_profile').select('*').eq('user_id', user.id).single();
     userProfile = profiles.data;
   } catch (error) {
-    console.error('Error fetching user profile:', error);
+    console.error('ユーザープロフィール取得エラー:', error);
   }
 }
 
-// Get user's vehicles
+// ユーザーの車両を取得
 let userVehicles: Tables<'vehicles'>[] = [];
 if (user) {
   try {
@@ -32,11 +32,11 @@ if (user) {
       userVehicles = allVehicles.filter(vehicle => vehicleIds.includes(vehicle.id));
     }
   } catch (error) {
-    console.error('Error fetching user vehicles:', error);
+    console.error('車両取得エラー:', error);
   }
 }
 
-// Get user's prompt history
+// ユーザーのAI会話履歴を取得
 let promptHistory: Tables<'prompts_history'>[] = [];
 if (user) {
   try {
@@ -50,7 +50,7 @@ if (user) {
       promptHistory = data;
     }
   } catch (error) {
-    console.error('Error fetching prompt history:', error);
+    console.error('AI履歴取得エラー:', error);
   }
 }
 ---
@@ -58,60 +58,60 @@ if (user) {
 <Layout>
   <section class="flex flex-col items-center justify-center py-12 mb-8 w-full">
     <h1 class="text-4xl md:text-5xl font-extrabold text-primary mb-2 text-center">
-      Tableau de bord
+      ダッシュボード
     </h1>
     <p class="text-lg md:text-xl text-base-content/80 text-center max-w-2xl">
-      Bienvenue sur votre espace personnel 4Ride !
+      4Rideのマイページへようこそ！
     </p>
   </section>
   <main class="w-full max-w-5xl mx-auto flex flex-col gap-12 px-4 md:px-0">
-    <!-- Stats -->
+    <!-- 統計 -->
     <section>
       <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
         <Icon name="stat" class="w-7 h-7 md:w-8 md:h-8 text-primary" />
-        Statistiques rapides
+        クイック統計
       </h2>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div class="stat bg-base-100 shadow rounded-lg flex flex-col items-center">
           <div class="stat-figure text-primary"><Icon name="road" class="w-8 h-8" /></div>
-          <div class="stat-title">Total kilomètres</div>
+          <div class="stat-title">総走行距離</div>
           <div class="stat-value text-primary">{userProfile?.mileage || 0} km</div>
-          <div class="stat-desc">Distance totale parcourue</div>
+          <div class="stat-desc">累計走行距離</div>
         </div>
         <div class="stat bg-base-100 shadow rounded-lg flex flex-col items-center">
           <div class="stat-figure text-secondary"><Icon name="motorcycle" class="w-8 h-8" /></div>
-          <div class="stat-title">Véhicules possédés</div>
+          <div class="stat-title">所有バイク数</div>
           <div class="stat-value text-secondary">{userVehicles.length}</div>
-          <div class="stat-desc">Nombre de véhicules</div>
+          <div class="stat-desc">登録バイク台数</div>
         </div>
         <div class="stat bg-base-100 shadow rounded-lg flex flex-col items-center">
           <div class="stat-figure text-accent"><Icon name="chat" class="w-8 h-8" /></div>
-          <div class="stat-title">Conversations IA</div>
+          <div class="stat-title">AI会話数</div>
           <div class="stat-value text-accent">{promptHistory.length}</div>
-          <div class="stat-desc">Interactions récentes</div>
+          <div class="stat-desc">最近のやりとり</div>
         </div>
       </div>
     </section>
     <div class="divider"></div>
-    <!-- Vehicles Section -->
+    <!-- バイクセクション -->
     <section>
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold flex items-center gap-2">
           <Icon name="motorcycle" class="w-7 h-7 md:w-8 md:h-8 text-primary" />
-          Mes véhicules
+          所有バイク
         </h2>
         <button class="btn btn-primary" onclick="document.getElementById('add_vehicle_modal').showModal()">
           <Icon name="add" class="w-5 h-5" />
-          Ajouter un véhicule
+          バイクを追加
         </button>
       </div>
       {userVehicles.length === 0 ? (
         <div class="text-center py-8">
           <Icon name="motorcycle" class="w-16 h-16 mx-auto text-gray-400 mb-4" />
-          <h3 class="text-lg font-semibold mb-2">Aucun véhicule</h3>
-          <p class="text-gray-600 mb-4">Ajoutez votre premier véhicule pour suivre vos sorties</p>
+          <h3 class="text-lg font-semibold mb-2">バイク未登録</h3>
+          <p class="text-gray-600 mb-4">最初のバイクを登録して走行を記録しましょう</p>
           <button class="btn btn-primary" onclick="document.getElementById('add_vehicle_modal').showModal()">
-            Ajouter un véhicule
+            バイクを追加
           </button>
         </div>
       ) : (
@@ -129,21 +129,21 @@ if (user) {
                       <Icon name="more-vert" class="w-5 h-5" />
                     </div>
                     <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                      <li><button data-vehicle-id={`${vehicle.id}`} data-vehicle-brand={`${vehicle.brand}`} data-vehicle-model={`${vehicle.model}`} data-vehicle-year={`${vehicle.year || ''}`} data-vehicle-engine={`${vehicle.engine_size || ''}`} data-vehicle-mileage={`${vehicle.mileage || ''}`} class="edit-vehicle-btn">Modifier</button></li>
-                      <li><button data-vehicle-id={`${vehicle.id}`} class="delete-vehicle-btn text-error">Supprimer</button></li>
+                      <li><button data-vehicle-id={`${vehicle.id}`} data-vehicle-brand={`${vehicle.brand}`} data-vehicle-model={`${vehicle.model}`} data-vehicle-year={`${vehicle.year || ''}`} data-vehicle-engine={`${vehicle.engine_size || ''}`} data-vehicle-mileage={`${vehicle.mileage || ''}`} class="edit-vehicle-btn">編集</button></li>
+                      <li><button data-vehicle-id={`${vehicle.id}`} class="delete-vehicle-btn text-error">削除</button></li>
                     </ul>
                   </div>
                 </div>
                 <div class="mt-4 space-y-2">
                   {vehicle.engine_size && (
                     <div class="flex justify-between">
-                      <span class="text-sm text-gray-600">Cylindrée :</span>
+                      <span class="text-sm text-gray-600">排気量:</span>
                       <span class="text-sm font-medium">{vehicle.engine_size}cc</span>
                     </div>
                   )}
                   {vehicle.mileage && (
                     <div class="flex justify-between">
-                      <span class="text-sm text-gray-600">Kilométrage :</span>
+                      <span class="text-sm text-gray-600">走行距離:</span>
                       <span class="text-sm font-medium">{vehicle.mileage} km</span>
                     </div>
                   )}
@@ -155,25 +155,25 @@ if (user) {
       )}
     </section>
     <div class="divider"></div>
-    <!-- AI Chat History Section -->
+    <!-- AI会話履歴セクション -->
     <section>
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold flex items-center gap-2">
           <Icon name="chat" class="w-7 h-7 md:w-8 md:h-8 text-primary" />
-          Historique des conversations IA
+          AI会話履歴
         </h2>
         <a href="/" class="btn btn-outline">
           <Icon name="add" class="w-5 h-5" />
-          Nouvelle conversation
+          新しい会話
         </a>
       </div>
       {promptHistory.length === 0 ? (
         <div class="text-center py-8">
           <Icon name="chat" class="w-16 h-16 mx-auto text-gray-400 mb-4" />
-          <h3 class="text-lg font-semibold mb-2">Aucune conversation</h3>
-          <p class="text-gray-600 mb-4">Commencez une conversation avec l'IA pour voir votre historique ici</p>
+          <h3 class="text-lg font-semibold mb-2">会話履歴なし</h3>
+          <p class="text-gray-600 mb-4">AIと会話を始めるとここに履歴が表示されます</p>
           <a href="/" class="btn btn-primary">
-            Démarrer une conversation
+            会話を始める
           </a>
         </div>
       ) : (
@@ -185,17 +185,17 @@ if (user) {
                   <div class="flex-1">
                     <div class="flex items-center gap-2 mb-2">
                       <span class="text-sm text-gray-500">
-                        {new Date(prompt.created_at).toLocaleDateString()} à {new Date(prompt.created_at).toLocaleTimeString()}
+                        {new Date(prompt.created_at).toLocaleDateString('ja-JP')} {new Date(prompt.created_at).toLocaleTimeString('ja-JP')}
                       </span>
                     </div>
                     <div class="space-y-2">
                       <div>
-                        <h4 class="font-semibold text-sm text-gray-700 mb-1">Votre question :</h4>
+                        <h4 class="font-semibold text-sm text-gray-700 mb-1">あなたの質問：</h4>
                         <p class="text-sm bg-base-100 p-2 rounded">{prompt.user_input}</p>
                       </div>
                       {prompt.answer && (
                         <div>
-                          <h4 class="font-semibold text-sm text-gray-700 mb-1">Réponse IA :</h4>
+                          <h4 class="font-semibold text-sm text-gray-700 mb-1">AIの回答：</h4>
                           <p class="text-sm bg-base-100 p-2 rounded line-clamp-3">{prompt.answer}</p>
                         </div>
                       )}
@@ -206,7 +206,7 @@ if (user) {
                       <Icon name="more-vert" class="w-5 h-5" />
                     </div>
                     <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                      <li><button data-prompt-id={`${prompt.id}`} class="delete-prompt-btn text-error">Supprimer</button></li>
+                      <li><button data-prompt-id={`${prompt.id}`} class="delete-prompt-btn text-error">削除</button></li>
                     </ul>
                   </div>
                 </div>
@@ -218,23 +218,23 @@ if (user) {
     </section>
   </main>
 
-  <!-- Add Vehicle Modal -->
+  <!-- バイク追加モーダル -->
   <dialog id="add_vehicle_modal" class="modal">
     <div class="modal-box max-w-2xl">
       <div class="flex items-center gap-3 mb-6">
         <div class="bg-primary/10 p-2 rounded-full">
           <Icon name="motorcycle" class="w-6 h-6 text-primary" />
         </div>
-        <h3 class="font-bold text-xl">Ajouter un véhicule</h3>
+        <h3 class="font-bold text-xl">バイクを追加</h3>
       </div>
       <form id="add-vehicle-form" class="space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="form-control">
             <label class="label">
-              <span class="label-text font-medium">Marque *</span>
+              <span class="label-text font-medium">メーカー *</span>
             </label>
             <select name="brand" class="select select-bordered w-full" required>
-              <option value="">Sélectionner la marque</option>
+              <option value="">メーカーを選択</option>
               <option value="Honda">Honda</option>
               <option value="Suzuki">Suzuki</option>
               <option value="Yamaha">Yamaha</option>
@@ -249,63 +249,63 @@ if (user) {
           </div>
           <div class="form-control">
             <label class="label">
-              <span class="label-text font-medium">Modèle *</span>
+              <span class="label-text font-medium">モデル *</span>
             </label>
-            <input type="text" name="model" class="input input-bordered w-full" placeholder="ex: CBR600RR" required />
+            <input type="text" name="model" class="input input-bordered w-full" placeholder="例: CBR600RR" required />
           </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="form-control">
             <label class="label">
-              <span class="label-text font-medium">Année</span>
+              <span class="label-text font-medium">年式</span>
             </label>
             <input type="number" name="year" class="input input-bordered w-full" placeholder="2020" min="1900" max={new Date().getFullYear()} />
           </div>
           <div class="form-control">
             <label class="label">
-              <span class="label-text font-medium">Cylindrée (cc)</span>
+              <span class="label-text font-medium">排気量 (cc)</span>
             </label>
             <input type="number" name="engine_size" class="input input-bordered w-full" placeholder="600" min="50" max="3000" />
           </div>
           <div class="form-control">
             <label class="label">
-              <span class="label-text font-medium">Kilométrage actuel (km)</span>
+              <span class="label-text font-medium">現在の走行距離 (km)</span>
             </label>
             <input type="number" name="mileage" class="input input-bordered w-full" placeholder="15000" min="0" />
           </div>
         </div>
         <div class="modal-action pt-4">
-          <button type="button" class="btn btn-ghost close-modal-btn" data-modal={`add_vehicle_modal`}>Annuler</button>
+          <button type="button" class="btn btn-ghost close-modal-btn" data-modal={`add_vehicle_modal`}>キャンセル</button>
           <button type="submit" class="btn btn-primary">
             <Icon name="add" class="w-5 h-5 mr-2" />
-            Ajouter
+            追加
           </button>
         </div>
       </form>
     </div>
     <form method="dialog" class="modal-backdrop">
-      <button>fermer</button>
+      <button>閉じる</button>
     </form>
   </dialog>
 
-  <!-- Edit Vehicle Modal -->
+  <!-- バイク編集モーダル -->
   <dialog id="edit_vehicle_modal" class="modal">
     <div class="modal-box max-w-2xl">
       <div class="flex items-center gap-3 mb-6">
         <div class="bg-secondary/10 p-2 rounded-full">
           <Icon name="motorcycle" class="w-6 h-6 text-secondary" />
         </div>
-        <h3 class="font-bold text-xl">Modifier le véhicule</h3>
+        <h3 class="font-bold text-xl">バイクを編集</h3>
       </div>
       <form id="edit-vehicle-form" class="space-y-4">
         <input type="hidden" name="vehicle_id" id="edit_vehicle_id" />
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="form-control">
             <label class="label">
-              <span class="label-text font-medium">Marque *</span>
+              <span class="label-text font-medium">メーカー *</span>
             </label>
             <select name="brand" id="edit_vehicle_brand" class="select select-bordered w-full" required>
-              <option value="">Sélectionner la marque</option>
+              <option value="">メーカーを選択</option>
               <option value="Honda">Honda</option>
               <option value="Suzuki">Suzuki</option>
               <option value="Yamaha">Yamaha</option>
@@ -320,48 +320,48 @@ if (user) {
           </div>
           <div class="form-control">
             <label class="label">
-              <span class="label-text font-medium">Modèle *</span>
+              <span class="label-text font-medium">モデル *</span>
             </label>
-            <input type="text" name="model" id="edit_vehicle_model" class="input input-bordered w-full" placeholder="ex: CBR600RR" required />
+            <input type="text" name="model" id="edit_vehicle_model" class="input input-bordered w-full" placeholder="例: CBR600RR" required />
           </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="form-control">
             <label class="label">
-              <span class="label-text font-medium">Année</span>
+              <span class="label-text font-medium">年式</span>
             </label>
             <input type="number" name="year" id="edit_vehicle_year" class="input input-bordered w-full" placeholder="2020" min="1900" max={new Date().getFullYear()} />
           </div>
           <div class="form-control">
             <label class="label">
-              <span class="label-text font-medium">Cylindrée (cc)</span>
+              <span class="label-text font-medium">排気量 (cc)</span>
             </label>
             <input type="number" name="engine_size" id="edit_vehicle_engine_size" class="input input-bordered w-full" placeholder="600" min="50" max="3000" />
           </div>
           <div class="form-control">
             <label class="label">
-              <span class="label-text font-medium">Kilométrage actuel (km)</span>
+              <span class="label-text font-medium">現在の走行距離 (km)</span>
             </label>
             <input type="number" name="mileage" id="edit_vehicle_mileage" class="input input-bordered w-full" placeholder="15000" min="0" />
           </div>
         </div>
         <div class="modal-action pt-4">
-          <button type="button" class="btn btn-ghost close-modal-btn" data-modal={`edit_vehicle_modal`}>Annuler</button>
+          <button type="button" class="btn btn-ghost close-modal-btn" data-modal={`edit_vehicle_modal`}>キャンセル</button>
           <button type="submit" class="btn btn-secondary">
             <Icon name="edit" class="w-5 h-5 mr-2" />
-            Modifier
+            編集
           </button>
         </div>
       </form>
     </div>
     <form method="dialog" class="modal-backdrop">
-      <button>fermer</button>
+      <button>閉じる</button>
     </form>
   </dialog>
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // Edit vehicle button event listeners
+      // 編集ボタン
       document.querySelectorAll('.edit-vehicle-btn').forEach((button) => {
         button.addEventListener('click', function(this: HTMLElement) {
           const vehicleId = this.getAttribute('data-vehicle-id');
@@ -370,7 +370,7 @@ if (user) {
           const year = this.getAttribute('data-vehicle-year');
           const engineSize = this.getAttribute('data-vehicle-engine');
           const mileage = this.getAttribute('data-vehicle-mileage');
-          // Populate the edit modal
+          // モーダルに値をセット
           const idInput = document.getElementById('edit_vehicle_id') as HTMLInputElement;
           const brandSelect = document.getElementById('edit_vehicle_brand') as HTMLSelectElement;
           const modelInput = document.getElementById('edit_vehicle_model') as HTMLInputElement;
@@ -387,31 +387,31 @@ if (user) {
           if (modal && typeof modal.showModal === 'function') modal.showModal();
         });
       });
-      // Delete vehicle button event listeners
+      // 削除ボタン
       document.querySelectorAll('.delete-vehicle-btn').forEach((button) => {
         button.addEventListener('click', function(this: HTMLElement) {
           const vehicleId = this.getAttribute('data-vehicle-id');
-          if (confirm('Supprimer ce véhicule ?')) {
+          if (confirm('このバイクを削除しますか？')) {
             fetch(`/api/vehicles/${vehicleId}`, { method: 'DELETE' }).then(response => {
               if (response.ok) window.location.reload();
-              else alert('Erreur lors de la suppression');
+              else alert('削除時にエラーが発生しました');
             });
           }
         });
       });
-      // Delete prompt button event listeners
+      // 会話削除ボタン
       document.querySelectorAll('.delete-prompt-btn').forEach((button) => {
         button.addEventListener('click', function(this: HTMLElement) {
           const promptId = this.getAttribute('data-prompt-id');
-          if (confirm('Supprimer cette conversation ?')) {
+          if (confirm('この会話を削除しますか？')) {
             fetch(`/api/prompts/${promptId}`, { method: 'DELETE' }).then(response => {
               if (response.ok) window.location.reload();
-              else alert('Erreur lors de la suppression');
+              else alert('削除時にエラーが発生しました');
             });
           }
         });
       });
-      // Close modal button event listeners
+      // モーダルを閉じるボタン
       document.querySelectorAll('.close-modal-btn').forEach((button) => {
         button.addEventListener('click', function(this: HTMLElement) {
           const modalId = this.getAttribute('data-modal');
@@ -419,7 +419,7 @@ if (user) {
           if (modal && typeof modal.close === 'function') modal.close();
         });
       });
-      // Add Vehicle form handler
+      // バイク追加フォーム
       const addVehicleForm = document.getElementById('add-vehicle-form');
       if (addVehicleForm) {
         addVehicleForm.addEventListener('submit', async function(e) {
@@ -439,10 +439,10 @@ if (user) {
             body: JSON.stringify(data)
           });
           if (res.ok) window.location.reload();
-          else alert('Erreur lors de l\'ajout');
+          else alert('追加時にエラーが発生しました');
         });
       }
-      // Edit Vehicle form handler
+      // バイク編集フォーム
       const editVehicleForm = document.getElementById('edit-vehicle-form');
       if (editVehicleForm) {
         editVehicleForm.addEventListener('submit', async function(e) {
@@ -465,9 +465,9 @@ if (user) {
             body: JSON.stringify(data)
           });
           if (res.ok) window.location.reload();
-          else alert('Erreur lors de la modification');
+          else alert('編集時にエラーが発生しました');
         });
       }
     });
   </script>
-</Layout>
+</Layout> 

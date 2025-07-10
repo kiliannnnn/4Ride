@@ -9,18 +9,18 @@ import type { Tables } from '@/database.types';
 
 const user = Astro.locals.sb_user;
 
-// Get user profile
+// Récupérer le profil utilisateur
 let userProfile = null;
 if (user) {
   try {
     const profiles = await supabase.from('user_profile').select('*').eq('user_id', user.id).single();
     userProfile = profiles.data;
   } catch (error) {
-    console.error('Error fetching user profile:', error);
+    console.error('Erreur lors de la récupération du profil utilisateur :', error);
   }
 }
 
-// Get user's vehicles
+// Récupérer les véhicules de l'utilisateur
 let userVehicles: Tables<'vehicles'>[] = [];
 if (user) {
   try {
@@ -32,11 +32,11 @@ if (user) {
       userVehicles = allVehicles.filter(vehicle => vehicleIds.includes(vehicle.id));
     }
   } catch (error) {
-    console.error('Error fetching user vehicles:', error);
+    console.error('Erreur lors de la récupération des véhicules :', error);
   }
 }
 
-// Get user's prompt history
+// Récupérer l'historique des conversations IA
 let promptHistory: Tables<'prompts_history'>[] = [];
 if (user) {
   try {
@@ -50,7 +50,7 @@ if (user) {
       promptHistory = data;
     }
   } catch (error) {
-    console.error('Error fetching prompt history:', error);
+    console.error('Erreur lors de la récupération de l\'historique IA :', error);
   }
 }
 ---
@@ -65,7 +65,7 @@ if (user) {
     </p>
   </section>
   <main class="w-full max-w-5xl mx-auto flex flex-col gap-12 px-4 md:px-0">
-    <!-- Stats -->
+    <!-- Statistiques -->
     <section>
       <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
         <Icon name="stat" class="w-7 h-7 md:w-8 md:h-8 text-primary" />
@@ -93,7 +93,7 @@ if (user) {
       </div>
     </section>
     <div class="divider"></div>
-    <!-- Vehicles Section -->
+    <!-- Section Véhicules -->
     <section>
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold flex items-center gap-2">
@@ -155,7 +155,7 @@ if (user) {
       )}
     </section>
     <div class="divider"></div>
-    <!-- AI Chat History Section -->
+    <!-- Section Historique IA -->
     <section>
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-bold flex items-center gap-2">
@@ -185,7 +185,7 @@ if (user) {
                   <div class="flex-1">
                     <div class="flex items-center gap-2 mb-2">
                       <span class="text-sm text-gray-500">
-                        {new Date(prompt.created_at).toLocaleDateString()} à {new Date(prompt.created_at).toLocaleTimeString()}
+                        {new Date(prompt.created_at).toLocaleDateString('fr-FR')} à {new Date(prompt.created_at).toLocaleTimeString('fr-FR')}
                       </span>
                     </div>
                     <div class="space-y-2">
@@ -218,7 +218,7 @@ if (user) {
     </section>
   </main>
 
-  <!-- Add Vehicle Modal -->
+  <!-- Modal Ajouter Véhicule -->
   <dialog id="add_vehicle_modal" class="modal">
     <div class="modal-box max-w-2xl">
       <div class="flex items-center gap-3 mb-6">
@@ -288,7 +288,7 @@ if (user) {
     </form>
   </dialog>
 
-  <!-- Edit Vehicle Modal -->
+  <!-- Modal Modifier Véhicule -->
   <dialog id="edit_vehicle_modal" class="modal">
     <div class="modal-box max-w-2xl">
       <div class="flex items-center gap-3 mb-6">
@@ -361,7 +361,7 @@ if (user) {
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // Edit vehicle button event listeners
+      // Boutons Modifier véhicule
       document.querySelectorAll('.edit-vehicle-btn').forEach((button) => {
         button.addEventListener('click', function(this: HTMLElement) {
           const vehicleId = this.getAttribute('data-vehicle-id');
@@ -370,7 +370,7 @@ if (user) {
           const year = this.getAttribute('data-vehicle-year');
           const engineSize = this.getAttribute('data-vehicle-engine');
           const mileage = this.getAttribute('data-vehicle-mileage');
-          // Populate the edit modal
+          // Remplir le modal d'édition
           const idInput = document.getElementById('edit_vehicle_id') as HTMLInputElement;
           const brandSelect = document.getElementById('edit_vehicle_brand') as HTMLSelectElement;
           const modelInput = document.getElementById('edit_vehicle_model') as HTMLInputElement;
@@ -387,7 +387,7 @@ if (user) {
           if (modal && typeof modal.showModal === 'function') modal.showModal();
         });
       });
-      // Delete vehicle button event listeners
+      // Boutons Supprimer véhicule
       document.querySelectorAll('.delete-vehicle-btn').forEach((button) => {
         button.addEventListener('click', function(this: HTMLElement) {
           const vehicleId = this.getAttribute('data-vehicle-id');
@@ -399,7 +399,7 @@ if (user) {
           }
         });
       });
-      // Delete prompt button event listeners
+      // Boutons Supprimer conversation IA
       document.querySelectorAll('.delete-prompt-btn').forEach((button) => {
         button.addEventListener('click', function(this: HTMLElement) {
           const promptId = this.getAttribute('data-prompt-id');
@@ -411,7 +411,7 @@ if (user) {
           }
         });
       });
-      // Close modal button event listeners
+      // Boutons Fermer modal
       document.querySelectorAll('.close-modal-btn').forEach((button) => {
         button.addEventListener('click', function(this: HTMLElement) {
           const modalId = this.getAttribute('data-modal');
@@ -419,7 +419,7 @@ if (user) {
           if (modal && typeof modal.close === 'function') modal.close();
         });
       });
-      // Add Vehicle form handler
+      // Formulaire Ajouter véhicule
       const addVehicleForm = document.getElementById('add-vehicle-form');
       if (addVehicleForm) {
         addVehicleForm.addEventListener('submit', async function(e) {
@@ -442,7 +442,7 @@ if (user) {
           else alert('Erreur lors de l\'ajout');
         });
       }
-      // Edit Vehicle form handler
+      // Formulaire Modifier véhicule
       const editVehicleForm = document.getElementById('edit-vehicle-form');
       if (editVehicleForm) {
         editVehicleForm.addEventListener('submit', async function(e) {
@@ -470,4 +470,4 @@ if (user) {
       }
     });
   </script>
-</Layout>
+</Layout> 
