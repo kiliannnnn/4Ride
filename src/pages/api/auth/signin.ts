@@ -1,7 +1,7 @@
 import type { APIRoute } from "astro";
 import { supabase } from "@/lib/supabase";
 
-export const POST: APIRoute = async ({ cookies, request, redirect }) => {
+export const POST: APIRoute = async ({ cookies, request }) => {
     const formData = await request.formData();
     const email = formData.get("email")?.toString();
     const password = formData.get("password")?.toString();
@@ -23,5 +23,8 @@ export const POST: APIRoute = async ({ cookies, request, redirect }) => {
     cookies.set("sb-access-token", access_token, {path: "/",});
     cookies.set("sb-refresh-token", refresh_token, { path: "/",});
 
-    return redirect("/");
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
 };

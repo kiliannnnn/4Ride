@@ -2,7 +2,7 @@ import type { APIRoute } from "astro";
 import { supabase } from "@/lib/supabase";
 import { createUserProfile } from "@/lib/services/userProfileServices";
 
-export const POST: APIRoute = async ({ request, redirect, cookies }) => {
+export const POST: APIRoute = async ({ request, cookies }) => {
     const formData = await request.formData();
     const email = formData.get("email")?.toString();
     const password = formData.get("p1")?.toString();
@@ -69,5 +69,8 @@ export const POST: APIRoute = async ({ request, redirect, cookies }) => {
     cookies.set("sb-access-token", access_token, { path: "/" });
     cookies.set("sb-refresh-token", refresh_token, { path: "/" });
 
-    return redirect("/");
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
 };
