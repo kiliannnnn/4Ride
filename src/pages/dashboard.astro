@@ -232,7 +232,7 @@ if (user) {
         <h3 class="font-bold text-xl">Add New Vehicle</h3>
       </div>
       
-      <form method="POST" action="/api/vehicles/create" class="space-y-4">
+      <form id="add-vehicle-form" class="space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="form-control">
             <label class="label">
@@ -312,7 +312,7 @@ if (user) {
         <h3 class="font-bold text-xl">Edit Vehicle</h3>
       </div>
       
-      <form method="POST" action="/api/vehicles/update" class="space-y-4">
+      <form id="edit-vehicle-form" class="space-y-4">
         <input type="hidden" name="vehicle_id" id="edit_vehicle_id" />
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -474,6 +474,60 @@ if (user) {
           }
         });
       });
+
+      // Add Vehicle form handler
+      const addVehicleForm = document.getElementById('add-vehicle-form');
+      if (addVehicleForm) {
+        addVehicleForm.addEventListener('submit', async function(e) {
+          e.preventDefault();
+          const form = e.target as HTMLFormElement;
+          const data = {
+            brand: (form.elements.namedItem('brand') as HTMLSelectElement)?.value,
+            model: (form.elements.namedItem('model') as HTMLInputElement)?.value,
+            year: (form.elements.namedItem('year') as HTMLInputElement)?.value ? Number((form.elements.namedItem('year') as HTMLInputElement).value) : null,
+            engine_size: (form.elements.namedItem('engine_size') as HTMLInputElement)?.value ? Number((form.elements.namedItem('engine_size') as HTMLInputElement).value) : null,
+            mileage: (form.elements.namedItem('mileage') as HTMLInputElement)?.value ? Number((form.elements.namedItem('mileage') as HTMLInputElement).value) : null
+          };
+          const res = await fetch('/api/vehicles/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify(data)
+          });
+          if (res.ok) {
+            window.location.reload();
+          } else {
+            alert('Failed to add vehicle');
+          }
+        });
+      }
+      // Edit Vehicle form handler
+      const editVehicleForm = document.getElementById('edit-vehicle-form');
+      if (editVehicleForm) {
+        editVehicleForm.addEventListener('submit', async function(e) {
+          e.preventDefault();
+          const form = e.target as HTMLFormElement;
+          const data = {
+            id: (form.elements.namedItem('vehicle_id') as HTMLInputElement)?.value,
+            updates: {
+              brand: (form.elements.namedItem('brand') as HTMLSelectElement)?.value,
+              model: (form.elements.namedItem('model') as HTMLInputElement)?.value,
+              year: (form.elements.namedItem('year') as HTMLInputElement)?.value ? Number((form.elements.namedItem('year') as HTMLInputElement).value) : null,
+              engine_size: (form.elements.namedItem('engine_size') as HTMLInputElement)?.value ? Number((form.elements.namedItem('engine_size') as HTMLInputElement).value) : null,
+              mileage: (form.elements.namedItem('mileage') as HTMLInputElement)?.value ? Number((form.elements.namedItem('mileage') as HTMLInputElement).value) : null
+            }
+          };
+          const res = await fetch('/api/vehicles/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify(data)
+          });
+          if (res.ok) {
+            window.location.reload();
+          } else {
+            alert('Failed to update vehicle');
+          }
+        });
+      }
     });
   </script>
 </Layout>

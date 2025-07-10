@@ -1,57 +1,52 @@
-import type { APIRoute } from "astro";
-import { supabase } from "@/lib/supabase";
-import { createVehicle } from "@/lib/services/vehiclesServices";
-import { createVehiclesOwnership } from "@/lib/services/vehiclesOwnershipServices";
+import type { APIRoute } from 'astro';
+import { createVehicle } from '@/lib/services/vehiclesServices';
+import { createVehiclesOwnership } from '@/lib/services/vehiclesOwnershipServices';
 
-export const POST: APIRoute = async ({ request, redirect, cookies }) => {
+export const POST: APIRoute = async ({ request, locals }) => {
+  let brand, model, year, engine_size, mileage;
   try {
-    const formData = await request.formData();
-    const brand = formData.get("brand")?.toString();
-    const model = formData.get("model")?.toString();
-    const year = formData.get("year")?.toString();
-    const engine_size = formData.get("engine_size")?.toString();
-    const mileage = formData.get("mileage")?.toString();
+    const body = await request.json();
+    brand = body.brand;
+    model = body.model;
+    year = body.year;
+    engine_size = body.engine_size;
+    mileage = body.mileage;
+  } catch (e) {
+    return new Response('Invalid JSON', { status: 400 });
+  }
 
-    if (!brand || !model) {
-      return new Response("Brand and model are required", { status: 400 });
-    }
-
-    // Get current user
-    const accessToken = cookies.get("sb-access-token");
-    const refreshToken = cookies.get("sb-refresh-token");
-
-    if (!accessToken || !refreshToken) {
-      return redirect("/signin");
-    }
-
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
-      return redirect("/signin");
-    }
-
-    // Create vehicle
-    const vehicleData = {
-      brand: brand as any, // Type assertion for enum
-      model: model,
-      year: year ? parseInt(year) : null,
-      engine_size: engine_size ? parseInt(engine_size) : null,
-      mileage: mileage ? parseInt(mileage) : null,
-    };
-
-    const vehicle = await createVehicle(vehicleData);
-    if (!vehicle) {
-      return new Response("Failed to create vehicle", { status: 500 });
-    }
-
-    // Create ownership relationship
-    await createVehiclesOwnership({
-      user_id: user.id,
-      vehicle_id: vehicle.id,
+  if (!brand) {
+    return new Response('brand is required', { status: 400 });
+  }
+  if (!locals.sb_user?.id) {
+    return new Response('Not authenticated', { status: 401 });
+  }
+  try {
+    const vehicle = await createVehicle({
+      brand,
+      model: model ?? null,
+      year: year ?? null,
+      engine_size: engine_size ?? null,
+      mileage: mileage ?? null,
     });
-
-    return redirect("/dashboard");
-  } catch (error: any) {
-    console.error("Error creating vehicle:", error);
-    return new Response("Failed to create vehicle: " + error.message, { status: 500 });
+    if (!vehicle) {
+      return new Response(JSON.stringify({ error: 'Failed to create vehicle' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    const ownership = await createVehiclesOwnership({
+      user_id: locals.sb_user.id,
+      vehicle_id: vehicle.id
+    });
+    return new Response(JSON.stringify({ vehicle, ownership }), {
+      status: 201,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (e: any) {
+    return new Response(JSON.stringify({ error: e.message || 'Failed to create vehicle' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 }; 
