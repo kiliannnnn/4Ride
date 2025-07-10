@@ -3,11 +3,16 @@ import { supabase } from "@/lib/supabase";
 import { createUserProfile } from "@/lib/services/userProfileServices";
 
 export const POST: APIRoute = async ({ request, cookies }) => {
-    const formData = await request.formData();
-    const email = formData.get("email")?.toString();
-    const password = formData.get("p1")?.toString();
-    const passwordConfirm = formData.get("p2")?.toString();
-    const username = formData.get("username")?.toString();
+    let email, password, passwordConfirm, username;
+    try {
+        const body = await request.json();
+        email = body.email;
+        password = body.p1;
+        passwordConfirm = body.p2;
+        username = body.username;
+    } catch (e) {
+        return new Response("Invalid JSON", { status: 400 });
+    }
 
     if (!email || !password || !passwordConfirm || !username) {
         return new Response("Email, username and password are required", { status: 400 });

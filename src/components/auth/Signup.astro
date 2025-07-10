@@ -18,12 +18,18 @@ const tRoute = useTranslationsRoute(lang);
     function handleSignup(e) {
         e.preventDefault();
         const form = e.target;
-        const data = new FormData(form);
+        const data = {
+            username: form.username.value,
+            email: form.email.value,
+            p1: form.p1.value,
+            p2: form.p2.value
+        };
         fetch("/api/auth/signup", {
             method: "POST",
-            body: data,
+            body: JSON.stringify(data),
             headers: {
                 Accept: "application/json",
+                "Content-Type": "application/json"
             },
         })
             .then(async (res) => {

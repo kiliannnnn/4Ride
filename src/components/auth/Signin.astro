@@ -18,12 +18,16 @@ const tRoute = useTranslationsRoute(lang);
     function handleSubmit(e) {
         e.preventDefault();
         const form = e.target;
-        const data = new FormData(form);
+        const data = {
+            email: form.email.value,
+            password: form.password.value
+        };
         fetch("/api/auth/signin", {
             method: "POST",
-            body: data,
+            body: JSON.stringify(data),
             headers: {
                 Accept: "application/json",
+                "Content-Type": "application/json"
             },
         })
             .then(async (res) => {

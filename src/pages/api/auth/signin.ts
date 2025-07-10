@@ -2,9 +2,15 @@ import type { APIRoute } from "astro";
 import { supabase } from "@/lib/supabase";
 
 export const POST: APIRoute = async ({ cookies, request }) => {
-    const formData = await request.formData();
-    const email = formData.get("email")?.toString();
-    const password = formData.get("password")?.toString();
+    console.log("Received POST to /api/auth/signin");
+    let email, password;
+    try {
+        const body = await request.json();
+        email = body.email;
+        password = body.password;
+    } catch (e) {
+        return new Response("Invalid JSON", { status: 400 });
+    }
 
     if (!email || !password) {
         return new Response("Email and password are required", { status: 400 });

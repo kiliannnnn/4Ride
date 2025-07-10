@@ -39,6 +39,59 @@ export type Database = {
   }
   public: {
     Tables: {
+      conversation_participants: {
+        Row: {
+          conversation_id: number
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id: number
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: number
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_participants_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: number
+          name: string | null
+          type: Database["public"]["Enums"]["conversation_type"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: number
+          name?: string | null
+          type?: Database["public"]["Enums"]["conversation_type"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: number
+          name?: string | null
+          type?: Database["public"]["Enums"]["conversation_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       friendships: {
         Row: {
           created_at: string
@@ -66,29 +119,40 @@ export type Database = {
         }
         Relationships: []
       }
-      group: {
+      messages: {
         Row: {
+          content: string
+          conversation_id: number
           created_at: string
-          description: string | null
           id: number
-          name: string | null
+          sender_id: string
           updated_at: string
         }
         Insert: {
+          content: string
+          conversation_id: number
           created_at?: string
-          description?: string | null
           id?: number
-          name?: string | null
+          sender_id: string
           updated_at?: string
         }
         Update: {
+          content?: string
+          conversation_id?: number
           created_at?: string
-          description?: string | null
           id?: number
-          name?: string | null
+          sender_id?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       prompts_history: {
         Row: {
@@ -140,29 +204,6 @@ export type Database = {
           username?: string
         }
         Relationships: []
-      }
-      users_groups: {
-        Row: {
-          group_id: number
-          user_id: string
-        }
-        Insert: {
-          group_id: number
-          user_id: string
-        }
-        Update: {
-          group_id?: number
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "users_groups_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "group"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       vehicles: {
         Row: {
@@ -231,6 +272,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      conversation_type: "private" | "group"
       friendships_status: "pending" | "accepted" | "rejected" | "blocked"
       motorbike_brands:
         | "Honda"
@@ -373,6 +415,7 @@ export const Constants = {
   },
   public: {
     Enums: {
+      conversation_type: ["private", "group"],
       friendships_status: ["pending", "accepted", "rejected", "blocked"],
       motorbike_brands: [
         "Honda",
