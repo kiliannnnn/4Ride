@@ -39,6 +39,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      friendships: {
+        Row: {
+          created_at: string
+          id: number
+          status: Database["public"]["Enums"]["friendships_status"]
+          updated_at: string
+          user_1_id: string
+          user_2_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          status?: Database["public"]["Enums"]["friendships_status"]
+          updated_at?: string
+          user_1_id: string
+          user_2_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          status?: Database["public"]["Enums"]["friendships_status"]
+          updated_at?: string
+          user_1_id?: string
+          user_2_id?: string
+        }
+        Relationships: []
+      }
+      group: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: number
+          name: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: number
+          name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: number
+          name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       prompts_history: {
         Row: {
           answer: string | null
@@ -89,6 +140,29 @@ export type Database = {
           username?: string
         }
         Relationships: []
+      }
+      users_groups: {
+        Row: {
+          group_id: number
+          user_id: string
+        }
+        Insert: {
+          group_id: number
+          user_id: string
+        }
+        Update: {
+          group_id?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "users_groups_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "group"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vehicles: {
         Row: {
@@ -157,6 +231,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      friendships_status: "pending" | "accepted" | "rejected" | "blocked"
       motorbike_brands:
         | "Honda"
         | "Suzuki"
@@ -298,6 +373,7 @@ export const Constants = {
   },
   public: {
     Enums: {
+      friendships_status: ["pending", "accepted", "rejected", "blocked"],
       motorbike_brands: [
         "Honda",
         "Suzuki",

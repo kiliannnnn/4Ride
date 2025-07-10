@@ -2,9 +2,49 @@
 import Layout from "@/layouts/Main.astro";
 import AskOllama from "@/components/AskOllama";
 import { getLangFromUrl } from '@/i18n/utils';
+import { listVehicles } from '@/lib/services/vehiclesServices';
 const lang = getLangFromUrl(Astro.url);
+
+type Vehicle = { brand: string; model: string | null; year: number | null; id: string };
+
+let vehicles: Vehicle[] = [];
+try {
+  vehicles = await listVehicles();
+} catch (e) {
+  vehicles = [{ brand: 'Error', model: 'fetching', year: 0, id: '0' }];
+}
+
+let apiVehicles: Vehicle[] = [];
+try {
+  const apiUrl = new URL('/api/vehicles/list', Astro.url).toString();
+  const res = await fetch(apiUrl);
+  if (res.ok) {
+    const json = await res.json();
+    apiVehicles = json.vehicles || [];
+  } else {
+    apiVehicles = [{ brand: 'API error', model: '', year: 0, id: '0' }];
+  }
+} catch (e) {
+  apiVehicles = [{ brand: 'API fetch error', model: '', year: 0, id: '0' }];
+}
 ---
 
 <Layout>
-    <AskOllama client:load lang={lang} />
+  <div>
+    <h2>Debug: Vehicles (Direct Supabase)</h2>
+    <ul>
+      {vehicles.slice(0, 5).map((vehicle: Vehicle) => (
+        <li><b>{vehicle.brand}</b> {vehicle.model} ({vehicle.year}) - id: {vehicle.id}</li>
+      ))}
+    </ul>
+  </div>
+  <div>
+    <h2>Debug: Vehicles (API)</h2>
+    <ul>
+      {apiVehicles.slice(0, 5).map((vehicle: Vehicle) => (
+        <li><b>{vehicle.brand}</b> {vehicle.model} ({vehicle.year}) - id: {vehicle.id}</li>
+      ))}
+    </ul>
+  </div>
+  <AskOllama client:load lang={lang} />
 </Layout>
