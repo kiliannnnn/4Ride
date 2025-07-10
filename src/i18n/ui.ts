@@ -13,6 +13,8 @@ export const ui = {
   en: {
     'nav.home': 'Home',
     'nav.about': 'About',
+    'nav.community': 'Community',
+    
 
     'auth.admin': 'Administrator',
     'auth.dashboard': 'Dashboard',
@@ -32,6 +34,7 @@ export const ui = {
   fr: {
     'nav.home': 'Accueil',
     'nav.about': 'À propos',
+    'nav.community': 'Communauté',
 
     'auth.admin': 'Administrateur',
     'auth.dashboard': 'Tableau de bord',
@@ -51,6 +54,7 @@ export const ui = {
   es: {
     'nav.home': 'Inicio',
     'nav.about': 'Acerca',
+    'nav.community': 'Comunidad',
 
     'auth.admin': 'Administrador',
     'auth.dashboard': 'Tablero',
@@ -70,6 +74,7 @@ export const ui = {
   jp: {
     'nav.home': 'ホーム',
     'nav.about': '約',
+    'nav.community': 'コミュニティ',
 
     'auth.admin': '管理者',
     'auth.dashboard': 'ダッシュボード',
@@ -91,24 +96,32 @@ export const ui = {
 export const routes = {
   en: {
     'about': 'about',
+    'community': 'community',
+    'admin': 'administrator',
     'dashboard': 'dashboard',
     'signin': 'signin',
     'signup': 'signup',
   },
   fr: {
     'about': 'a-propos',
+    'community': 'communaute',
+    'admin': 'administrateur',
     'dashboard': 'tableau-de-bord',
     'signin': 'se-connecter',
     'signup': 's-inscrire',
   },
   es: {
     'about': 'acerca',
+    'community': 'comunidad',
+    'admin': 'administrador',
     'dashboard': 'tablero',
     'signin': 'registrarse',
     'signup': 'inscribirse',
   },
   jp: {
     'about': 'yaku',
+    'community': 'komyuniti',
+    'admin': 'kanrisha',
     'dashboard': 'dashibōdo',
     'signin': 'sainin',
     'signup': 'sainappu',

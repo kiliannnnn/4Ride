@@ -14,6 +14,11 @@ const tRoute = useTranslationsRoute(lang);
         </a>
     </li>
     <li>
+        <a href={getRelativeLocaleUrl(lang, tRoute("community"))}>
+            {t("nav.community")}
+        </a>
+    </li>
+    <li>
         <a href={getRelativeLocaleUrl(lang, tRoute("about"))}>
             {t("nav.about")}
         </a>

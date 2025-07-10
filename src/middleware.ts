@@ -26,7 +26,7 @@ async function auth({ locals, url, cookies, redirect }: AuthContext, next: NextF
     const tRoute = useTranslationsRoute(lang);
 
     // TODO : add your protected routes
-    const protectedRoutes = [tRoute('/dashboard')];
+    const protectedRoutes = [tRoute('/dashboard'), tRoute('/community')];
     // TODO : add your admin routes
     const adminRoutes = [tRoute('/admin')];
     
