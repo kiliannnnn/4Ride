@@ -74,6 +74,14 @@ export default function AskOllama(props: AskOllamaProps) {
     "I want a challenging ride with mountain passes"
   ];
 
+  // Get display prompts for current language
+  const getDisplayPrompts = () => [
+    t(lang, 'shortRidePrompt'),
+    t(lang, 'scenicMountainPrompt'),
+    t(lang, 'lakesForestPrompt'),
+    t(lang, 'challengingRidePrompt')
+  ];
+
   // Fetch city suggestions from Google Places
   const fetchSuggestions = async (query: string) => {
     if (!query) {
@@ -386,7 +394,7 @@ export default function AskOllama(props: AskOllamaProps) {
         setDetailedRoute(data.points);
         return data.points;
       } else {
-        setExportError('No route found');
+        setExportError(t(lang, 'noRouteFound'));
         return null;
       }
     } catch (err: any) {
@@ -419,20 +427,20 @@ export default function AskOllama(props: AskOllamaProps) {
               <label class="tab cursor-pointer text-xs sm:text-sm" classList={{'tab-active': activeTab() === 'natural'}}>
                 <input type="radio" name="askollama_tabs" checked={activeTab() === 'natural'} onChange={() => setActiveTab('natural')} />
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-3 sm:size-4 me-1 sm:me-2"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" /></svg>
-                <span class="hidden sm:inline">Natural</span>
-                <span class="sm:hidden">AI</span>
+                <span class="hidden sm:inline">{t(lang, 'natural')}</span>
+                <span class="sm:hidden">{t(lang, 'ai')}</span>
               </label>
               <label class="tab cursor-pointer text-xs sm:text-sm" classList={{'tab-active': activeTab() === 'form'}}>
                 <input type="radio" name="askollama_tabs" checked={activeTab() === 'form'} onChange={() => setActiveTab('form')} />
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-3 sm:size-4 me-1 sm:me-2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z" /></svg>
-                Form
+                {t(lang, 'form')}
               </label>
             </div>
-            <button class="btn btn-outline btn-xs sm:btn-sm m-1" title="Export/Share" onClick={() => setShowExportModal(true)}>
+            <button class="btn btn-outline btn-xs sm:btn-sm m-1" title={t(lang, 'exportShare')} onClick={() => setShowExportModal(true)}>
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3 h-3 sm:w-5 sm:h-5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 16v-8m0 0l-3.5 3.5M12 8l3.5 3.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span class="ml-1 hidden lg:inline">Export/Share</span>
+              <span class="ml-1 hidden lg:inline">{t(lang, 'exportShare')}</span>
             </button>
           </div>
           <div class="tab-content bg-base-100 border-base-300 p-2 sm:p-4 md:p-6 flex flex-col flex-1 h-full min-h-0" style={{ display: activeTab() === 'natural' ? 'flex' : 'none' }}>
@@ -449,7 +457,7 @@ export default function AskOllama(props: AskOllamaProps) {
               <Show when={availableItineraries().length > 0 && !isStreaming()}>
                 <div class="chat chat-start">
                   <div class="chat-bubble chat-bubble-accent text-xs sm:text-sm">
-                    <div class="font-semibold mb-2 sm:mb-3 text-xs sm:text-sm">🗺️ Available Itineraries:</div>
+                    <div class="font-semibold mb-2 sm:mb-3 text-xs sm:text-sm">🗺️ {t(lang, 'availableItineraries')}:</div>
                     <div class="flex flex-col gap-2 sm:gap-3">
                       {availableItineraries().map((it, idx) => (
                         <div class={`border rounded-lg p-2 sm:p-3 transition-all cursor-pointer ${selectedItineraryIdx() === idx ? 'border-primary bg-primary/20 shadow-md' : 'border-base-300 bg-base-100/50'}`}
@@ -474,7 +482,7 @@ export default function AskOllama(props: AskOllamaProps) {
                         </div>
                       ))}
                     </div>
-                    <div class="mt-2 text-xs opacity-70">Click on an itinerary above to select it and view it on the map.</div>
+                    <div class="mt-2 text-xs opacity-70">{t(lang, 'clickItineraryInstruction')}</div>
                   </div>
                 </div>
               </Show>
@@ -490,8 +498,9 @@ export default function AskOllama(props: AskOllamaProps) {
             </div>
             {/* Input area */}
             <div class="flex gap-1 sm:gap-2 mb-2 overflow-x-auto whitespace-nowrap" style={{ "scrollbar-width": 'none'}}>
-              {autoPrompts.map(prompt => {
-                let displayPrompt = prompt;
+              {autoPrompts.map((prompt, index) => {
+                let displayPrompt = getDisplayPrompts()[index];
+                let apiPrompt = prompt; // Keep English for API
                 const needsLocation = prompt.includes('my location');
                 return (
                   <button
@@ -499,20 +508,20 @@ export default function AskOllama(props: AskOllamaProps) {
                     class="badge badge-outline badge-sm sm:badge-lg cursor-pointer px-2 sm:px-3 py-1 sm:py-2 rounded-full text-xs hover:bg-primary hover:text-primary-content transition flex-shrink-0"
                     onClick={async () => {
                       if (needsLocation && !userLocation()) {
-                        alert('Location access is required for this prompt. Please enable location access in your browser settings.');
+                        alert(t(lang, 'locationAccessRequired'));
                         return;
                       }
                       if (needsLocation && userLocation()) {
                         const loc = userLocation();
                         if (loc) {
                           if (typeof loc.city === 'string' && loc.city.length > 0) {
-                            displayPrompt = prompt.replace('my location', loc.city);
+                            apiPrompt = prompt.replace('my location', loc.city);
                           } else {
-                            displayPrompt = prompt.replace('my location', `${loc.lat.toFixed(3)},${loc.lon.toFixed(3)}`);
+                            apiPrompt = prompt.replace('my location', `${loc.lat.toFixed(3)},${loc.lon.toFixed(3)}`);
                           }
                         }
                       }
-                      sendPrompt(displayPrompt);
+                      sendPrompt(apiPrompt);
                     }}
                   >
                     <span class="hidden sm:inline">{displayPrompt}</span>
@@ -714,7 +723,7 @@ export default function AskOllama(props: AskOllamaProps) {
                         checked={roundTrip()}
                         onChange={() => setRoundTrip(v => !v)}
                       />
-                      <span class="text-xs sm:text-sm">Round trip</span>
+                      <span class="text-xs sm:text-sm">{t(lang, 'roundTrip')}</span>
                     </label>
                   </div>
                 </div>
@@ -810,13 +819,13 @@ export default function AskOllama(props: AskOllamaProps) {
       {/* Export/Share Modal (daisyUI dialog) */}
       <dialog id="export_modal" class="modal" open={showExportModal()} onClose={() => setShowExportModal(false)}>
         <div class="modal-box max-w-sm sm:max-w-md">
-          <h3 class="font-bold text-base sm:text-lg mb-3 sm:mb-4">Export or Share Route</h3>
+          <h3 class="font-bold text-base sm:text-lg mb-3 sm:mb-4">{t(lang, 'exportOrShareRoute')}</h3>
           <div class="flex flex-row gap-3 sm:gap-6 justify-center items-center mb-2">
             {/* GPX Button */}
             <button
               class="btn btn-circle btn-md sm:btn-lg btn-secondary tooltip w-12 h-12 sm:w-16 sm:h-16"
-              aria-label="Export as GPX"
-              data-tip="Export as GPX"
+              aria-label={t(lang, 'exportAsGPX')}
+              data-tip={t(lang, 'exportAsGPX')}
               disabled={exportLoading()}
               onClick={async () => {
                 const points = detailedRoute() || await fetchDetailedRoute();
@@ -837,8 +846,8 @@ export default function AskOllama(props: AskOllamaProps) {
             {/* KML Button */}
             <button
               class="btn btn-circle btn-md sm:btn-lg btn-accent tooltip w-12 h-12 sm:w-16 sm:h-16"
-              aria-label="Export as KML"
-              data-tip="Export as KML"
+              aria-label={t(lang, 'exportAsKML')}
+              data-tip={t(lang, 'exportAsKML')}
               disabled={exportLoading()}
               onClick={async () => {
                 const points = detailedRoute() || await fetchDetailedRoute();
@@ -859,8 +868,8 @@ export default function AskOllama(props: AskOllamaProps) {
             {/* Google Maps Button */}
             <button
               class="btn btn-circle btn-md sm:btn-lg btn-info tooltip w-12 h-12 sm:w-16 sm:h-16"
-              aria-label="Share to Google Maps"
-              data-tip="Share to Google Maps"
+              aria-label={t(lang, 'shareToGoogleMaps')}
+              data-tip={t(lang, 'shareToGoogleMaps')}
               onClick={() => { openGoogleMaps(); setShowExportModal(false); }}
             >
               {/* Fallback: map marker icon */}
@@ -871,15 +880,15 @@ export default function AskOllama(props: AskOllamaProps) {
             </button>
           </div>
           {exportError() && <div class="alert alert-error mt-2 text-xs sm:text-sm">{exportError()}</div>}
-          {exportLoading() && <div class="flex items-center gap-2 mt-2 text-xs sm:text-sm"><span class="loading loading-spinner loading-sm sm:loading-md text-info"></span> <span>Loading route...</span></div>}
+          {exportLoading() && <div class="flex items-center gap-2 mt-2 text-xs sm:text-sm"><span class="loading loading-spinner loading-sm sm:loading-md text-info"></span> <span>{t(lang, 'loadingRoute')}</span></div>}
           <div class="modal-action mt-3 sm:mt-4">
             <form method="dialog">
-              <button class="btn btn-sm sm:btn-md" onClick={() => setShowExportModal(false)}>Close</button>
+              <button class="btn btn-sm sm:btn-md" onClick={() => setShowExportModal(false)}>{t(lang, 'close')}</button>
             </form>
           </div>
         </div>
         <form method="dialog" class="modal-backdrop" onClick={() => setShowExportModal(false)}>
-          <button>close</button>
+          <button>{t(lang, 'close')}</button>
         </form>
       </dialog>
     </div>
