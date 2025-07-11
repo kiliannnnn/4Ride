@@ -1,8 +1,11 @@
 ---
 import Layout from "@/layouts/Main.astro";
-import { getLangFromUrl } from '@/i18n/utils';
+import { getLangFromUrl } from "@/i18n/utils";
 const lang = getLangFromUrl(Astro.url);
+import CommunityComponent from "@/components/Community";
+const user = Astro.locals.sb_user;
 ---
 
-<Layout title="Communaute">
+<Layout lang={lang} title="Communauté">
+  <CommunityComponent user={user} lang={lang} client:load />
 </Layout>

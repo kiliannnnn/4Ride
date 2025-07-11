@@ -6,10 +6,13 @@ import { createConversation, getConversationsForUser } from '@/lib/services/conv
 import { createConversationParticipant, getParticipantsByConversation } from '@/lib/services/conversationParticipantsServices';
 import { createMessage, getMessagesByConversation } from '@/lib/services/messagesServices';
 import { supabase } from '@/lib/supabase';
+import { tCommunity } from '@/lib/utils';
 import type { Tables } from '@/database.types';
+import type { lang } from '@/lib/utils';
 
 interface CommunityProps {
     user?: { id: string } | null;
+    lang?: string;
 }
 
 interface FriendWithProfile {
@@ -51,6 +54,9 @@ interface Message {
 
 export default function Community(props: CommunityProps) {
     const userId = props.user?.id || "current-user";
+    
+    // Make lang reactive to prop changes
+    const lang = () => (['fr', 'es', 'jp'].includes(props.lang as string) ? props.lang as lang : 'en');
     
     // State management
     const [activeTab, setActiveTab] = createSignal<'conversations' | 'friends'>('conversations');
@@ -435,7 +441,7 @@ export default function Community(props: CommunityProps) {
             console.log('✅ Message sent successfully');
         } catch (error) {
             console.error('❌ handleSendMessage: Error sending message:', error);
-            alert('Erreur lors de l\'envoi du message. Veuillez réessayer.');
+            alert(tCommunity(lang(), 'errorSendMessage'));
         } finally {
             setSendingMessage(false);
         }
@@ -598,7 +604,7 @@ export default function Community(props: CommunityProps) {
             // Validate input
             if (participants.length === 0) {
                 console.error('❌ No participants selected');
-                alert('Veuillez sélectionner au moins un participant');
+                alert(tCommunity(lang(), 'errorSelectParticipants'));
                 return;
             }
             
@@ -609,7 +615,7 @@ export default function Community(props: CommunityProps) {
             // For group conversations, name is required
             if (conversationType === 'group' && !name) {
                 console.error('❌ Group conversation name is required');
-                alert('Le nom est obligatoire pour les conversations de groupe');
+                alert(tCommunity(lang(), 'errorConversationName'));
                 return;
             }
             
@@ -667,7 +673,7 @@ export default function Community(props: CommunityProps) {
             
         } catch (error) {
             console.error('❌ handleCreateConversation: Error creating conversation:', error);
-            alert('Erreur lors de la création de la conversation. Veuillez réessayer.');
+            alert(tCommunity(lang(), 'errorCreateConversation'));
         } finally {
             setCreatingConversation(false);
         }
@@ -743,12 +749,12 @@ export default function Community(props: CommunityProps) {
     const getConversationTitle = (convData: ConversationWithParticipants) => {
         const conversation = convData.conversation;
         if (conversation.type === 'group') {
-            return conversation.name || 'Groupe sans nom';
+            return conversation.name || tCommunity(lang(), 'privateConversation');
         }
         
         // For private conversations, show the other participant's name
         const otherParticipant = convData.participantProfiles.find(p => p.user_id !== userId);
-        return otherParticipant?.username || 'Conversation privée';
+        return otherParticipant?.username || tCommunity(lang(), 'privateConversation');
     };
 
     const getLastMessageTime = (convData: ConversationWithParticipants) => {
@@ -758,9 +764,9 @@ export default function Community(props: CommunityProps) {
         const now = new Date();
         const diffHours = Math.floor((now.getTime() - messageDate.getTime()) / (1000 * 60 * 60));
         
-        if (diffHours < 1) return 'À l\'instant';
-        if (diffHours < 24) return `${diffHours}h`;
-        if (diffHours < 48) return 'Hier';
+        if (diffHours < 1) return tCommunity(lang(), 'just_now');
+        if (diffHours < 24) return `${diffHours} ${tCommunity(lang(), 'hours_ago')}`;
+        if (diffHours < 48) return tCommunity(lang(), 'yesterday');
         
         return messageDate.toLocaleDateString();
     };
@@ -772,7 +778,7 @@ export default function Community(props: CommunityProps) {
 
     const getNewConversationTitle = () => {
         const newConvUserId = newConversationWithUserId();
-        if (!newConvUserId) return 'Nouvelle conversation';
+        if (!newConvUserId) return tCommunity(lang(), 'newConversation');
         
         // Find the friend's profile
         const friendData = friendsWithProfiles().find(f => 
@@ -780,7 +786,7 @@ export default function Community(props: CommunityProps) {
             (f.friendship.user_2_id === newConvUserId && f.friendship.user_1_id === userId)
         );
         
-        return friendData ? friendData.profile.username : 'Nouvelle conversation';
+        return friendData ? friendData.profile.username : tCommunity(lang(), 'newConversation');
     };
 
     return (
@@ -802,7 +808,7 @@ export default function Community(props: CommunityProps) {
                 <div class="md:hidden p-3 sm:p-4 border-b border-base-300">
                     <h2 class="text-lg sm:text-xl font-bold text-primary flex items-center gap-2 justify-center">
                         <Icon name="groups" class="w-5 h-5 sm:w-6 sm:h-6" />
-                        Communauté
+                        {tCommunity(lang(), 'title')}
                     </h2>
                 </div>
 
@@ -819,21 +825,21 @@ export default function Community(props: CommunityProps) {
                                 <div class="flex items-center justify-between mb-3">
                                     <h3 class="text-base sm:text-lg font-semibold flex items-center gap-2">
                                         <Icon name="chat" class="w-4 h-4 sm:w-5 sm:h-5" />
-                                        Conversations
+                                        {tCommunity(lang(), 'conversations')}
                                     </h3>
                                     <button 
                                         class="btn btn-primary btn-sm"
                                         onClick={() => (document.getElementById('new_conversation_modal') as HTMLDialogElement)?.showModal()}
                                     >
                                         <Icon name="add" class="w-3 h-3 sm:w-4 sm:h-4" />
-                                        <span class="hidden sm:inline">Nouvelle</span>
+                                        <span class="hidden sm:inline">{tCommunity(lang(), 'new')}</span>
                                     </button>
                                 </div>
                                 
                                 {/* Conversations Search */}
                                 <input 
                                     type="text" 
-                                    placeholder="Rechercher conversations..." 
+                                    placeholder={tCommunity(lang(), 'searchConversations')} 
                                     class="input input-bordered input-sm sm:input-md w-full text-xs sm:text-sm mb-3"
                                     value={searchQuery()}
                                     onInput={(e) => setSearchQuery(e.target.value)}
@@ -845,7 +851,7 @@ export default function Community(props: CommunityProps) {
                                         <Show when={filteredConversations().length > 0} fallback={
                                             <div class="text-center py-4 text-base-content/70">
                                                 <Icon name="chat" class="w-8 h-8 mx-auto mb-2 opacity-50" />
-                                                <p class="text-sm">Aucune conversation</p>
+                                                <p class="text-sm">{tCommunity(lang(), 'noConversations')}</p>
                                             </div>
                                         }>
                                             <For each={filteredConversations()}>
@@ -870,7 +876,7 @@ export default function Community(props: CommunityProps) {
                                                                         </h4>
                                                                     </div>
                                                                     <p class="text-xs text-base-content/70 truncate">
-                                                                        {convData.lastMessage?.content || 'Aucun message'}
+                                                                        {convData.lastMessage?.content || tCommunity(lang(), 'noMessage')}
                                                                     </p>
                                                                 </div>
                                                                 <span class="text-xs text-base-content/50">
@@ -895,21 +901,21 @@ export default function Community(props: CommunityProps) {
                                 <div class="flex items-center justify-between mb-3">
                                     <h3 class="text-base sm:text-lg font-semibold flex items-center gap-2">
                                         <Icon name="person_fill" class="w-4 h-4 sm:w-5 sm:h-5" />
-                                        Amis
+                                        {tCommunity(lang(), 'friends')}
                                     </h3>
                                     <button 
                                         class="btn btn-primary btn-sm"
                                         onClick={() => (document.getElementById('add_friend_modal') as HTMLDialogElement)?.showModal()}
                                     >
                                         <Icon name="add" class="w-3 h-3 sm:w-4 sm:h-4" />
-                                        <span class="hidden sm:inline">Ajouter</span>
+                                        <span class="hidden sm:inline">{tCommunity(lang(), 'add')}</span>
                                     </button>
                                 </div>
                                 
                                 {/* Friends Search */}
                                 <input 
                                     type="text" 
-                                    placeholder="Rechercher amis..." 
+                                    placeholder={tCommunity(lang(), 'searchFriends')} 
                                     class="input input-bordered input-sm sm:input-md w-full text-xs sm:text-sm mb-3"
                                     value={searchQuery()}
                                     onInput={(e) => setSearchQuery(e.target.value)}
@@ -924,7 +930,7 @@ export default function Community(props: CommunityProps) {
                                                 <div class="mb-3">
                                                     <h4 class="text-xs sm:text-sm font-semibold text-warning flex items-center gap-1 mb-2">
                                                         <Icon name="person_fill" class="w-3 h-3" />
-                                                        Demandes reçues ({filteredReceivedInvites().length})
+                                                        {tCommunity(lang(), 'requestsReceived')} ({filteredReceivedInvites().length})
                                                     </h4>
                                                     <For each={filteredReceivedInvites()}>
                                                         {(inviteData) => (
@@ -965,7 +971,7 @@ export default function Community(props: CommunityProps) {
                                                 <div class="mb-3">
                                                     <h4 class="text-xs sm:text-sm font-semibold text-success flex items-center gap-1 mb-2">
                                                         <Icon name="person_fill" class="w-3 h-3" />
-                                                        Amis ({filteredFriends().length})
+                                                        {tCommunity(lang(), 'friendsCount')} ({filteredFriends().length})
                                                     </h4>
                                                     <For each={filteredFriends()}>
                                                         {(friendData) => (
@@ -995,7 +1001,7 @@ export default function Community(props: CommunityProps) {
                                             <Show when={filteredReceivedInvites().length === 0 && filteredFriends().length === 0}>
                                                 <div class="text-center py-4 text-base-content/70">
                                                     <Icon name="person_outline" class="w-8 h-8 mx-auto mb-2 opacity-50" />
-                                                    <p class="text-sm">Aucun ami trouvé</p>
+                                                    <p class="text-sm">{tCommunity(lang(), 'noFriendsFound')}</p>
                                                 </div>
                                             </Show>
                                         </div>
@@ -1043,7 +1049,7 @@ export default function Community(props: CommunityProps) {
                                     <For each={selectedMessages()}>
                                         {(messageData) => {
                                             const isOwn = messageData.message.sender_id === userId;
-                                            const senderName = isOwn ? 'Moi' : (messageData.senderProfile?.username || 'Utilisateur inconnu');
+                                            const senderName = isOwn ? tCommunity(lang(), 'me') : (messageData.senderProfile?.username || tCommunity(lang(), 'unknownUser'));
                                             
                                             return (
                                                 <div class={`chat ${isOwn ? 'chat-end' : 'chat-start'}`}>
@@ -1073,7 +1079,7 @@ export default function Community(props: CommunityProps) {
                                     <div class="flex justify-center items-center h-full text-center">
                                         <div class="text-base-content/50">
                                             <Icon name="chat" class="w-8 h-8 mx-auto mb-2 opacity-50" />
-                                            <p class="text-sm">Aucun message</p>
+                                            <p class="text-sm">{tCommunity(lang(), 'noMessage')}</p>
                                         </div>
                                     </div>
                                 </Show>
@@ -1085,7 +1091,7 @@ export default function Community(props: CommunityProps) {
                                     <input
                                         type="text"
                                         class="input input-bordered flex-1 input-sm sm:input-md"
-                                        placeholder="Tapez votre message..."
+                                        placeholder={tCommunity(lang(), 'typeMessage')}
                                         value={newMessage()}
                                         onInput={(e) => setNewMessage(e.target.value)}
                                         onKeyDown={handleKeyPress}
@@ -1116,7 +1122,7 @@ export default function Community(props: CommunityProps) {
                     <div class="hidden md:flex flex-col gap-4 mb-6">
                         <h2 class="text-xl lg:text-2xl font-bold text-primary flex items-center gap-2">
                             <Icon name="groups" class="w-6 h-6 lg:w-7 lg:h-7" />
-                            Communauté
+                            {tCommunity(lang(), 'community')}
                         </h2>
                         
                         {/* Desktop Tabs */}
@@ -1129,7 +1135,7 @@ export default function Community(props: CommunityProps) {
                                 }}
                             >
                                 <Icon name="chat" class="w-4 h-4 mr-2" />
-                                Conversations
+                                {tCommunity(lang(), 'conversations')}
                             </a>
                             <a 
                                 role="tab" 
@@ -1139,7 +1145,7 @@ export default function Community(props: CommunityProps) {
                                 }}
                             >
                                 <Icon name="person_fill" class="w-4 h-4 mr-2" />
-                                Amis
+                                {tCommunity(lang(), 'friends')}
                             </a>
                         </div>
                     </div>
@@ -1150,7 +1156,7 @@ export default function Community(props: CommunityProps) {
                         <div class="flex gap-1 sm:gap-2">
                             <input 
                                 type="text" 
-                                placeholder="Rechercher..." 
+                                placeholder={tCommunity(lang(), 'search')} 
                                 class="input input-bordered input-sm sm:input-md flex-1 text-xs sm:text-sm"
                                 value={searchQuery()}
                                 onInput={(e) => {
@@ -1181,12 +1187,12 @@ export default function Community(props: CommunityProps) {
                                 <Show when={filteredConversations().length > 0} fallback={
                                     <div class="text-center py-8 text-base-content/70">
                                         <Icon name="chat" class="w-12 h-12 mx-auto mb-2 opacity-50" />
-                                        <p class="mb-2">Aucune conversation trouvée</p>
+                                        <p class="mb-2">{tCommunity(lang(), 'noConversationsFound')}</p>
                                         <Show when={searchQuery()}>
                                             <p class="text-sm">Essayez un autre terme de recherche</p>
                                         </Show>
                                         <Show when={!searchQuery()}>
-                                            <p class="text-sm">Créez une nouvelle conversation pour commencer</p>
+                                            <p class="text-sm">{tCommunity(lang(), 'createNewConversation')}</p>
                                         </Show>
                                     </div>
                                 }>
@@ -1212,7 +1218,7 @@ export default function Community(props: CommunityProps) {
                                                                 </h3>
                                                             </div>
                                                             <p class="text-xs text-base-content/70 truncate">
-                                                                {convData.lastMessage?.content || 'Aucun message'}
+                                                                {convData.lastMessage?.content || tCommunity(lang(), 'noMessage')}
                                                             </p>
                                                         </div>
                                                         <div class="flex flex-col items-end gap-1">
@@ -1246,7 +1252,7 @@ export default function Community(props: CommunityProps) {
                                         <div class="mb-4">
                                             <h4 class="text-sm font-semibold text-warning flex items-center gap-2 mb-2">
                                                 <Icon name="person_fill" class="w-4 h-4" />
-                                                Demandes reçues ({filteredReceivedInvites().length})
+                                                {tCommunity(lang(), 'requestsReceived')} ({filteredReceivedInvites().length})
                                             </h4>
                                             <For each={filteredReceivedInvites()}>
                                                 {(inviteData) => (
@@ -1281,21 +1287,21 @@ export default function Community(props: CommunityProps) {
                                                                         <button 
                                                                             class="btn btn-success btn-xs"
                                                                             onClick={() => handleAcceptFriendRequest(inviteData.friendship.id)}
-                                                                            title="Accepter"
+                                                                            title={tCommunity(lang(), 'accept')}
                                                                         >
                                                                             <Icon name="person_fill" class="w-3 h-3" />
                                                                         </button>
                                                                         <button 
                                                                             class="btn btn-error btn-xs"
                                                                             onClick={() => handleDeclineFriendRequest(inviteData.friendship.id)}
-                                                                            title="Refuser"
+                                                                            title={tCommunity(lang(), 'decline')}
                                                                         >
                                                                             <Icon name="person_outline" class="w-3 h-3" />
                                                                         </button>
                                                                         <button 
                                                                             class="btn btn-warning btn-xs"
                                                                             onClick={() => handleBlockFriendRequest(inviteData.friendship.id)}
-                                                                            title="Bloquer"
+                                                                            title={tCommunity(lang(), 'block')}
                                                                         >
                                                                             <Icon name="shield-lock" class="w-3 h-3" />
                                                                         </button>
@@ -1314,7 +1320,7 @@ export default function Community(props: CommunityProps) {
                                         <div class="mb-4">
                                             <h4 class="text-sm font-semibold text-info flex items-center gap-2 mb-2">
                                                 <Icon name="history" class="w-4 h-4" />
-                                                Demandes envoyées ({filteredSentInvites().length})
+                                                {tCommunity(lang(), 'requestsSent')} ({filteredSentInvites().length})
                                             </h4>
                                             <For each={filteredSentInvites()}>
                                                 {(inviteData) => (
@@ -1347,7 +1353,7 @@ export default function Community(props: CommunityProps) {
                                                                     <button 
                                                                         class="btn btn-error btn-xs"
                                                                         onClick={() => handleCancelFriendRequest(inviteData.friendship.id)}
-                                                                        title="Annuler la demande"
+                                                                        title={tCommunity(lang(), 'cancelRequest')}
                                                                     >
                                                                         <Icon name="person_outline" class="w-3 h-3" />
                                                                     </button>
@@ -1365,7 +1371,7 @@ export default function Community(props: CommunityProps) {
                                         <div class="mb-4">
                                             <h4 class="text-sm font-semibold text-success flex items-center gap-2 mb-2">
                                                 <Icon name="person_fill" class="w-4 h-4" />
-                                                Amis ({filteredFriends().length})
+                                                {tCommunity(lang(), 'friends')} ({filteredFriends().length})
                                             </h4>
                                             <For each={filteredFriends()}>
                                                 {(friendData) => (
@@ -1418,7 +1424,7 @@ export default function Community(props: CommunityProps) {
                                                                                     onClick={() => handleMessageFriend(friendData.friendship.user_1_id === userId ? friendData.friendship.user_2_id : friendData.friendship.user_1_id)}
                                                                                 >
                                                                                     <Icon name="chat" class="w-4 h-4" />
-                                                                                    Envoyer un message
+                                                                                    {tCommunity(lang(), 'sendMessage')}
                                                                                 </button>
                                                                             </li>
                                                                             <li>
@@ -1427,7 +1433,7 @@ export default function Community(props: CommunityProps) {
                                                                                     onClick={() => handleDeleteFriend(friendData.friendship.id)}
                                                                                 >
                                                                                     <Icon name="person_outline" class="w-4 h-4" />
-                                                                                    Supprimer ami
+                                                                                    {tCommunity(lang(), 'delete')}
                                                                                 </button>
                                                                             </li>
                                                                         </ul>
@@ -1445,7 +1451,7 @@ export default function Community(props: CommunityProps) {
                                     <Show when={filteredReceivedInvites().length === 0 && filteredSentInvites().length === 0 && filteredFriends().length === 0}>
                                         <div class="text-center py-8 text-base-content/70">
                                             <Icon name="person_outline" class="w-12 h-12 mx-auto mb-2 opacity-50" />
-                                            <p class="mb-2">Aucun ami trouvé</p>
+                                            <p class="mb-2">{tCommunity(lang(), 'noFriendsFound')}</p>
                                             <Show when={searchQuery()}>
                                                 <p class="text-sm">Essayez un autre terme de recherche</p>
                                             </Show>
@@ -1469,7 +1475,7 @@ export default function Community(props: CommunityProps) {
                             <div class="flex-1 flex items-center justify-center text-center p-4">
                                 <div>
                                     <Icon name="chat" class="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-base-content/30 mb-4" />
-                                    <h3 class="text-base sm:text-lg font-semibold mb-2">Sélectionnez une conversation</h3>
+                                    <h3 class="text-base sm:text-lg font-semibold mb-2">{tCommunity(lang(), 'selectConversation')}</h3>
                                     <p class="text-sm sm:text-base text-base-content/70">
                                         Choisissez une conversation dans la liste pour commencer à discuter
                                     </p>
@@ -1502,7 +1508,7 @@ export default function Community(props: CommunityProps) {
                                         </Show>
                                     </h3>
                                     <p class="text-xs sm:text-sm text-base-content/70">
-                                        <Show when={selectedConversationData()?.conversation.type === 'group'} fallback="En ligne">
+                                        <Show when={selectedConversationData()?.conversation.type === 'group'} fallback={tCommunity(lang(), 'online')}>
                                             {selectedConversationData()?.participants.length} participants
                                         </Show>
                                     </p>
@@ -1576,7 +1582,7 @@ export default function Community(props: CommunityProps) {
                                                             </div>
                                                             <div class="flex-1">
                                                                 <div class="font-semibold text-sm">
-                                                                    {participant.user_id === userId ? 'Moi' : participant.username}
+                                                                    {participant.user_id === userId ? tCommunity(lang(), 'me') : participant.username}
                                                                 </div>
                                                                 <div class="flex items-center gap-1 text-xs text-base-content/70">
                                                                     <Icon name="road" class="w-3 h-3" />
@@ -1654,7 +1660,7 @@ export default function Community(props: CommunityProps) {
                                 <For each={selectedMessages()}>
                                     {(messageData) => {
                                         const isOwn = messageData.message.sender_id === userId;
-                                        const senderName = isOwn ? 'Moi' : (messageData.senderProfile?.username || 'Utilisateur inconnu');
+                                        const senderName = isOwn ? tCommunity(lang(), 'me') : (messageData.senderProfile?.username || tCommunity(lang(), 'unknownUser'));
                                         const messageTime = new Date(messageData.message.created_at).toLocaleTimeString('fr-FR', {
                                             hour: '2-digit',
                                             minute: '2-digit'
@@ -1696,8 +1702,8 @@ export default function Community(props: CommunityProps) {
                                 <div class="flex justify-center items-center h-full text-center">
                                     <div class="text-base-content/50">
                                         <Icon name="chat" class="w-12 h-12 mx-auto mb-2 opacity-50" />
-                                        <p>Aucun message dans cette conversation</p>
-                                        <p class="text-sm mt-1">Soyez le premier à envoyer un message !</p>
+                                        <p>{tCommunity(lang(), 'noMessage')}</p>
+                                        <p class="text-sm mt-1">{tCommunity(lang(), 'sendMessage')}!</p>
                                     </div>
                                 </div>
                             </Show>
@@ -1708,7 +1714,7 @@ export default function Community(props: CommunityProps) {
                                     <input
                                         type="text"
                                         class="input input-bordered flex-1"
-                                        placeholder="Tapez votre message..."
+                                        placeholder={tCommunity(lang(), 'typeMessage')}
                                         value={newMessage()}
                                         onInput={(e) => setNewMessage(e.target.value)}
                                         onKeyDown={handleKeyPress}
@@ -1736,17 +1742,17 @@ export default function Community(props: CommunityProps) {
             {/* Add Friend Modal */}
             <dialog id="add_friend_modal" class="modal">
                 <div class="modal-box max-w-2xl">
-                    <h3 class="text-lg font-bold mb-4">Ajouter un ami</h3>
+                    <h3 class="text-lg font-bold mb-4">{tCommunity(lang(), 'addFriend')}</h3>
                     
                     {/* Search Section */}
                     <div class="form-control mb-4">
                         <label class="label">
-                            <span class="label-text">Rechercher par nom d'utilisateur</span>
+                            <span class="label-text">{tCommunity(lang(), 'searchUsers')}</span>
                         </label>
                         <div class="flex gap-2">
                             <input 
                                 type="text" 
-                                placeholder="Entrez le nom d'utilisateur..." 
+                                placeholder={tCommunity(lang(), 'searchUsers')} 
                                 class="input input-bordered flex-1"
                                 value={userSearchQuery()}
                                 onInput={(e) => {
@@ -1789,7 +1795,7 @@ export default function Community(props: CommunityProps) {
                                                     onClick={() => handleAddFriend(user.user_id || '')}
                                                 >
                                                     <Icon name="person_fill" class="w-4 h-4 mr-1" />
-                                                    Ajouter
+                                                    {tCommunity(lang(), 'add')}
                                                 </button>
                                             </div>
                                         </div>
@@ -1809,7 +1815,7 @@ export default function Community(props: CommunityProps) {
 
                     <div class="modal-action">
                         <form method="dialog">
-                            <button class="btn">Fermer</button>
+                            <button class="btn">{tCommunity(lang(), 'close')}</button>
                         </form>
                     </div>
                 </div>
@@ -1827,13 +1833,13 @@ export default function Community(props: CommunityProps) {
                             onClick={resetConversationForm}
                         >✕</button>
                     </form>
-                    <h3 class="text-lg font-bold mb-4">Nouvelle conversation</h3>
+                    <h3 class="text-lg font-bold mb-4">{tCommunity(lang(), 'newConversation')}</h3>
                     
                     {/* Conversation Name */}
                     <div class="form-control mb-4">
                         <label class="label">
                             <span class="label-text">
-                                Nom de la conversation 
+                                {tCommunity(lang(), 'conversationName')} 
                                 <Show when={selectedParticipants().length > 1} fallback="(optionnel pour conversation privée)">
                                     (obligatoire pour groupe)
                                 </Show>
@@ -1841,7 +1847,7 @@ export default function Community(props: CommunityProps) {
                         </label>
                         <input 
                             type="text" 
-                            placeholder="Entrez le nom de la conversation..." 
+                            placeholder={tCommunity(lang(), 'conversationName')} 
                             class="input input-bordered w-full" 
                             value={conversationName()}
                             onInput={(e) => setConversationName(e.target.value)}
@@ -1851,11 +1857,11 @@ export default function Community(props: CommunityProps) {
                     {/* Participants Selection */}
                     <div class="form-control mb-4">
                         <label class="label">
-                            <span class="label-text">Ajouter des participants</span>
+                            <span class="label-text">{tCommunity(lang(), 'selectParticipants')}</span>
                         </label>
                         <input 
                             type="text" 
-                            placeholder="Rechercher des amis à ajouter..." 
+                            placeholder={tCommunity(lang(), 'searchParticipants')} 
                             class="input input-bordered w-full mb-3" 
                             value={participantSearchQuery()}
                             onInput={(e) => setParticipantSearchQuery(e.target.value)}
@@ -1892,7 +1898,7 @@ export default function Community(props: CommunityProps) {
                             <div class="max-h-48 overflow-y-auto border border-base-300 rounded-lg p-2">
                                 <h5 class="text-sm font-semibold mb-2 flex items-center gap-2">
                                     <Icon name="person_outline" class="w-4 h-4" />
-                                    Amis disponibles
+                                    {tCommunity(lang(), 'availableFriends')}
                                 </h5>
                                 <For each={filteredAvailableParticipants()}>
                                     {(friend) => (
@@ -1927,7 +1933,7 @@ export default function Community(props: CommunityProps) {
                                 <Icon name="person_outline" class="w-8 h-8 mx-auto mb-2 opacity-50" />
                                 <p class="text-sm">
                                     <Show when={participantSearchQuery()} fallback="Tous vos amis sont déjà sélectionnés">
-                                        Aucun ami trouvé pour "{participantSearchQuery()}"
+                                        {tCommunity(lang(), 'noFriendsFoundFor')} "{participantSearchQuery()}"
                                     </Show>
                                 </p>
                             </div>
@@ -1937,13 +1943,13 @@ export default function Community(props: CommunityProps) {
                         <Show when={friendsWithProfiles().length === 0}>
                             <div class="text-center py-4 text-base-content/70 border border-base-300 rounded-lg">
                                 <Icon name="person_outline" class="w-8 h-8 mx-auto mb-2 opacity-50" />
-                                <p class="text-sm">Vous devez avoir des amis pour créer une conversation</p>
+                                <p class="text-sm">{tCommunity(lang(), 'needFriends')}</p>
                             </div>
                         </Show>
 
                         <div class="text-sm text-base-content/70 mt-2">
                             <Show when={selectedParticipants().length === 0}>
-                                Sélectionnez au moins un ami pour créer une conversation
+                                {tCommunity(lang(), 'selectFriend')}
                             </Show>
                             <Show when={selectedParticipants().length === 1}>
                                 Conversation privée avec {selectedParticipants()[0].profile.username}
@@ -1968,10 +1974,10 @@ export default function Community(props: CommunityProps) {
                                 <div class="loading loading-spinner loading-sm mr-2"></div>
                             </Show>
                             <Icon name="chat" class="w-4 h-4 mr-2" />
-                            Créer la conversation
+                            {tCommunity(lang(), 'createConversation')}
                         </button>
                         <form method="dialog">
-                            <button class="btn" disabled={creatingConversation()} onClick={resetConversationForm}>Annuler</button>
+                            <button class="btn" disabled={creatingConversation()} onClick={resetConversationForm}>{tCommunity(lang(), 'cancel')}</button>
                         </form>
                     </div>
                 </div>

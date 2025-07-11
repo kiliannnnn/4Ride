@@ -7,5 +7,5 @@ const user = Astro.locals.sb_user;
 ---
 
 <Layout title="Community">
-  <CommunityComponent user={user} client:load />
+  <CommunityComponent user={user} lang={lang} client:load />
 </Layout>
