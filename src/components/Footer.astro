@@ -2,21 +2,21 @@
 import { Icon } from 'astro-icon/components';
 ---
 
-<footer class="footer items-center p-4 flex justify-between">
-    <aside class="grid-flow-col items-center">
-        <Icon name="4Ride" class:list={'w-8 h-8'}/>
-        <p>Copyright © {new Date().getFullYear()} - All right reserved</p>
+<footer class="footer items-center p-4 flex flex-col sm:flex-row justify-between bg-base-100 border-t border-base-300">
+    <aside class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left order-2 sm:order-1">
+        <Icon name="4Ride" class:list={'w-6 h-6 sm:w-8 sm:h-8'}/>
+        <p class="text-sm sm:text-base">Copyright © {new Date().getFullYear()} - All right reserved</p>
         <span class="text-xs opacity-50 hover:opacity-100 cursor-pointer transition-opacity duration-300" 
             onclick="window.open('https:\/\/www.youtube.com/watch?v=dQw4w9WgXcQ', '_blank')"
             title="Click for a surprise! 🎵">🎸
         </span>
     </aside>
-    <nav class="grid-flow-col gap-4 md:place-self-center md:justify-self-end">
-        <a href="#">
-            <Icon name="youtube" class="w-auto h-8" />
+    <nav class="flex gap-3 sm:gap-4 order-1 sm:order-2 mb-2 sm:mb-0">
+        <a href="#" class="hover:opacity-80 transition-opacity">
+            <Icon name="youtube" class="w-6 h-6 sm:w-8 sm:h-8" />
         </a>
-        <a href="#">
-            <Icon name="instagram" class="w-auto h-8" />
+        <a href="#" class="hover:opacity-80 transition-opacity">
+            <Icon name="instagram" class="w-6 h-6 sm:w-8 sm:h-8" />
         </a>
     </nav>
 </footer>

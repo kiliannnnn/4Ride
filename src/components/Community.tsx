@@ -785,29 +785,341 @@ export default function Community(props: CommunityProps) {
 
     return (
         <Show when={mounted()} fallback={
-            <div class="relative w-full overflow-hidden flex items-center justify-center" style={{ 'min-height': 'calc(100vh - 128px)', height: 'calc(100vh - 128px)' }}>
+            <div class="relative w-full overflow-hidden flex items-center justify-center min-h-screen p-2 sm:p-4 md:p-6 lg:p-8">
                 <div class="loading loading-spinner loading-lg text-primary"></div>
             </div>
         }>
-            <div class="relative w-full overflow-hidden flex items-center justify-center" style={{ 'min-height': 'calc(100vh - 128px)', height: 'calc(100vh - 128px)' }}>
+            <div class="relative w-full overflow-hidden flex items-center justify-center min-h-screen p-2 sm:p-4 md:p-6 lg:p-8">
                 {/* Background */}
                 <div class="absolute inset-0 z-0">
                     <img src="/assets/images/biker.webp" alt="Background" class="w-full h-full object-cover object-center opacity-50" />
                 </div>
 
                 {/* Main Container */}
-                <div class="overflow-hidden relative z-10 w-full max-w-7xl rounded-3xl shadow-2xl bg-base-100/90 backdrop-blur-lg flex flex-col md:flex-row items-stretch justify-center h-full" style={{ 'max-height': '90%' }}>
+                <div class="overflow-hidden relative z-10 w-full max-w-sm sm:max-w-6xl md:max-w-7xl lg:max-w-8xl rounded-lg sm:rounded-3xl shadow-2xl bg-base-100/90 backdrop-blur-lg flex flex-col md:flex-row items-stretch justify-center h-auto min-h-[calc(100vh-32px)] sm:min-h-[calc(100vh-64px)] md:min-h-[calc(100vh-96px)] lg:min-h-[calc(100vh-128px)] max-h-[calc(100vh-32px)] sm:max-h-[calc(100vh-64px)] md:max-h-[calc(100vh-96px)] lg:max-h-[calc(100vh-128px)] overflow-y-auto" style={{ 'max-width': '1400px' }}>
                 
-                {/* Left Column - Conversations/Friends List */}
-                <div class="w-full md:w-1/3 p-4 flex flex-col h-full border-r border-base-300 pr-4">
-                    {/* Header with tabs */}
-                    <div class="flex flex-col gap-4 mb-6">
-                        <h2 class="text-2xl font-bold text-primary flex items-center gap-2">
-                            <Icon name="groups" class="w-7 h-7" />
+                {/* Mobile Header */}
+                <div class="md:hidden p-3 sm:p-4 border-b border-base-300">
+                    <h2 class="text-lg sm:text-xl font-bold text-primary flex items-center gap-2 justify-center">
+                        <Icon name="groups" class="w-5 h-5 sm:w-6 sm:h-6" />
+                        Communauté
+                    </h2>
+                </div>
+
+                {/* Main Content Area */}
+                <div class="flex flex-col md:flex-row flex-1 min-h-0">
+                
+                {/* Mobile/Tablet View - Separate Sections */}
+                <div class="md:hidden flex flex-col flex-1 min-h-0 p-0">
+                    {/* Show chat if conversation is selected, otherwise show sections */}
+                    <Show when={selectedConversation() !== null} fallback={
+                        <div class="flex flex-col flex-1 overflow-y-auto">
+                            {/* Conversations Section */}
+                            <div class="p-3 sm:p-4 border-b border-base-300">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h3 class="text-base sm:text-lg font-semibold flex items-center gap-2">
+                                        <Icon name="chat" class="w-4 h-4 sm:w-5 sm:h-5" />
+                                        Conversations
+                                    </h3>
+                                    <button 
+                                        class="btn btn-primary btn-sm"
+                                        onClick={() => (document.getElementById('new_conversation_modal') as HTMLDialogElement)?.showModal()}
+                                    >
+                                        <Icon name="add" class="w-3 h-3 sm:w-4 sm:h-4" />
+                                        <span class="hidden sm:inline">Nouvelle</span>
+                                    </button>
+                                </div>
+                                
+                                {/* Conversations Search */}
+                                <input 
+                                    type="text" 
+                                    placeholder="Rechercher conversations..." 
+                                    class="input input-bordered input-sm sm:input-md w-full text-xs sm:text-sm mb-3"
+                                    value={searchQuery()}
+                                    onInput={(e) => setSearchQuery(e.target.value)}
+                                />
+                                
+                                {/* Conversations List */}
+                                <div class="space-y-2 max-h-64 overflow-y-auto">
+                                    <Show when={loadingConversations()} fallback={
+                                        <Show when={filteredConversations().length > 0} fallback={
+                                            <div class="text-center py-4 text-base-content/70">
+                                                <Icon name="chat" class="w-8 h-8 mx-auto mb-2 opacity-50" />
+                                                <p class="text-sm">Aucune conversation</p>
+                                            </div>
+                                        }>
+                                            <For each={filteredConversations()}>
+                                                {(convData) => (
+                                                    <div 
+                                                        class="card bg-base-200 hover:bg-base-300 cursor-pointer transition-all"
+                                                        onClick={() => {
+                                                            setSelectedConversation(convData.conversation.id);
+                                                            setNewConversationWithUserId(null);
+                                                        }}
+                                                    >
+                                                        <div class="card-body p-3">
+                                                            <div class="flex items-start justify-between">
+                                                                <div class="flex-1 min-w-0">
+                                                                    <div class="flex items-center gap-2 mb-1">
+                                                                        <Icon 
+                                                                            name={convData.conversation.type === 'group' ? 'groups' : 'person_outline'} 
+                                                                            class="w-3 h-3 sm:w-4 sm:h-4 text-primary flex-shrink-0" 
+                                                                        />
+                                                                        <h4 class="font-semibold text-xs sm:text-sm truncate">
+                                                                            {getConversationTitle(convData)}
+                                                                        </h4>
+                                                                    </div>
+                                                                    <p class="text-xs text-base-content/70 truncate">
+                                                                        {convData.lastMessage?.content || 'Aucun message'}
+                                                                    </p>
+                                                                </div>
+                                                                <span class="text-xs text-base-content/50">
+                                                                    {getLastMessageTime(convData)}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </For>
+                                        </Show>
+                                    }>
+                                        <div class="flex justify-center p-4">
+                                            <div class="loading loading-spinner loading-sm text-primary"></div>
+                                        </div>
+                                    </Show>
+                                </div>
+                            </div>
+                            
+                            {/* Friends Section */}
+                            <div class="p-3 sm:p-4 flex-1">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h3 class="text-base sm:text-lg font-semibold flex items-center gap-2">
+                                        <Icon name="person_fill" class="w-4 h-4 sm:w-5 sm:h-5" />
+                                        Amis
+                                    </h3>
+                                    <button 
+                                        class="btn btn-primary btn-sm"
+                                        onClick={() => (document.getElementById('add_friend_modal') as HTMLDialogElement)?.showModal()}
+                                    >
+                                        <Icon name="add" class="w-3 h-3 sm:w-4 sm:h-4" />
+                                        <span class="hidden sm:inline">Ajouter</span>
+                                    </button>
+                                </div>
+                                
+                                {/* Friends Search */}
+                                <input 
+                                    type="text" 
+                                    placeholder="Rechercher amis..." 
+                                    class="input input-bordered input-sm sm:input-md w-full text-xs sm:text-sm mb-3"
+                                    value={searchQuery()}
+                                    onInput={(e) => setSearchQuery(e.target.value)}
+                                />
+                                
+                                {/* Friends Content */}
+                                <div class="space-y-2 overflow-y-auto">
+                                    <Show when={loadingFriends()} fallback={
+                                        <div>
+                                            {/* Received Friend Requests */}
+                                            <Show when={filteredReceivedInvites().length > 0}>
+                                                <div class="mb-3">
+                                                    <h4 class="text-xs sm:text-sm font-semibold text-warning flex items-center gap-1 mb-2">
+                                                        <Icon name="person_fill" class="w-3 h-3" />
+                                                        Demandes reçues ({filteredReceivedInvites().length})
+                                                    </h4>
+                                                    <For each={filteredReceivedInvites()}>
+                                                        {(inviteData) => (
+                                                            <div class="card bg-warning/10 border border-warning/20 mb-2">
+                                                                <div class="card-body p-3">
+                                                                    <div class="flex items-center justify-between">
+                                                                        <div class="flex items-center gap-2">
+                                                                            <Icon name="helmet" class="w-4 h-4 text-base-content" />
+                                                                            <div>
+                                                                                <h5 class="font-semibold text-xs">{inviteData.profile.username}</h5>
+                                                                                <p class="text-xs text-base-content/70">{inviteData.profile.mileage?.toLocaleString()} km</p>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="flex gap-1">
+                                                                            <button 
+                                                                                class="btn btn-success btn-xs"
+                                                                                onClick={() => handleAcceptFriendRequest(inviteData.friendship.id)}
+                                                                            >
+                                                                                <Icon name="person_fill" class="w-3 h-3" />
+                                                                            </button>
+                                                                            <button 
+                                                                                class="btn btn-error btn-xs"
+                                                                                onClick={() => handleDeclineFriendRequest(inviteData.friendship.id)}
+                                                                            >
+                                                                                <Icon name="person_outline" class="w-3 h-3" />
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </For>
+                                                </div>
+                                            </Show>
+
+                                            {/* Friends List */}
+                                            <Show when={filteredFriends().length > 0}>
+                                                <div class="mb-3">
+                                                    <h4 class="text-xs sm:text-sm font-semibold text-success flex items-center gap-1 mb-2">
+                                                        <Icon name="person_fill" class="w-3 h-3" />
+                                                        Amis ({filteredFriends().length})
+                                                    </h4>
+                                                    <For each={filteredFriends()}>
+                                                        {(friendData) => (
+                                                            <div 
+                                                                class="card bg-base-200 hover:bg-base-300 cursor-pointer transition-all mb-2"
+                                                                onClick={() => handleMessageFriend(friendData.friendship.user_1_id === userId ? friendData.friendship.user_2_id : friendData.friendship.user_1_id)}
+                                                            >
+                                                                <div class="card-body p-3">
+                                                                    <div class="flex items-center justify-between">
+                                                                        <div class="flex items-center gap-2">
+                                                                            <Icon name="helmet" class="w-4 h-4 text-base-content" />
+                                                                            <div>
+                                                                                <h5 class="font-semibold text-xs">{friendData.profile.username}</h5>
+                                                                                <p class="text-xs text-base-content/70">{friendData.profile.mileage?.toLocaleString()} km</p>
+                                                                            </div>
+                                                                        </div>
+                                                                        <Icon name="chat" class="w-4 h-4 text-primary" />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </For>
+                                                </div>
+                                            </Show>
+
+                                            {/* No Results Message */}
+                                            <Show when={filteredReceivedInvites().length === 0 && filteredFriends().length === 0}>
+                                                <div class="text-center py-4 text-base-content/70">
+                                                    <Icon name="person_outline" class="w-8 h-8 mx-auto mb-2 opacity-50" />
+                                                    <p class="text-sm">Aucun ami trouvé</p>
+                                                </div>
+                                            </Show>
+                                        </div>
+                                    }>
+                                        <div class="flex justify-center p-4">
+                                            <div class="loading loading-spinner loading-sm text-primary"></div>
+                                        </div>
+                                    </Show>
+                                </div>
+                            </div>
+                        </div>
+                    }>
+                        {/* Mobile Chat View */}
+                        <div class="flex flex-col min-h-[calc(100vh-120px)] sm:min-h-[calc(100vh-140px)] h-full">
+                            {/* Chat Header */}
+                            <div class="flex items-center justify-between p-3 sm:p-4 border-b border-base-300 bg-base-200">
+                                <button 
+                                    class="btn btn-ghost btn-sm mr-2"
+                                    onClick={() => setSelectedConversation(null)}
+                                >
+                                    <Icon name="left-arr" class="w-4 h-4" />
+                                </button>
+                                
+                                <div class="flex items-center gap-2 flex-1">
+                                    <Icon 
+                                        name={selectedConversationData()?.conversation.type === 'group' ? 'groups' : 'person_outline'} 
+                                        class="w-5 h-5 text-primary" 
+                                    />
+                                    <div class="min-w-0 flex-1">
+                                        <h3 class="font-semibold text-sm truncate">
+                                            <Show 
+                                                when={selectedConversationData()} 
+                                                fallback={getNewConversationTitle()}
+                                            >
+                                                {getConversationTitle(selectedConversationData()!)}
+                                            </Show>
+                                        </h3>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Messages Area */}
+                            <div class="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4 bg-base-100/50 min-h-0">
+                                <Show when={loadingMessages()} fallback={
+                                    <For each={selectedMessages()}>
+                                        {(messageData) => {
+                                            const isOwn = messageData.message.sender_id === userId;
+                                            const senderName = isOwn ? 'Moi' : (messageData.senderProfile?.username || 'Utilisateur inconnu');
+                                            
+                                            return (
+                                                <div class={`chat ${isOwn ? 'chat-end' : 'chat-start'}`}>
+                                                    <div class="chat-image avatar">
+                                                        <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-primary text-primary-content flex items-center justify-center">
+                                                            <span class="text-xs font-bold">{senderName.charAt(0).toUpperCase()}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="chat-header text-xs opacity-50 mb-1">
+                                                        {senderName}
+                                                    </div>
+                                                    <div class={`chat-bubble text-xs sm:text-sm ${isOwn ? 'chat-bubble-primary' : ''}`}>
+                                                        {messageData.message.content}
+                                                    </div>
+                                                </div>
+                                            );
+                                        }}
+                                    </For>
+                                }>
+                                    <div class="flex justify-center items-center h-full">
+                                        <div class="loading loading-spinner loading-md text-primary"></div>
+                                    </div>
+                                </Show>
+                                
+                                {/* No messages state */}
+                                <Show when={!loadingMessages() && selectedMessages().length === 0}>
+                                    <div class="flex justify-center items-center h-full text-center">
+                                        <div class="text-base-content/50">
+                                            <Icon name="chat" class="w-8 h-8 mx-auto mb-2 opacity-50" />
+                                            <p class="text-sm">Aucun message</p>
+                                        </div>
+                                    </div>
+                                </Show>
+                            </div>
+
+                            {/* Message Input */}
+                            <div class="p-3 sm:p-4 border-t border-base-300 bg-base-200">
+                                <div class="flex gap-2 items-end">
+                                    <input
+                                        type="text"
+                                        class="input input-bordered flex-1 input-sm sm:input-md"
+                                        placeholder="Tapez votre message..."
+                                        value={newMessage()}
+                                        onInput={(e) => setNewMessage(e.target.value)}
+                                        onKeyDown={handleKeyPress}
+                                        disabled={sendingMessage()}
+                                    />
+                                    <button 
+                                        class="btn btn-primary btn-sm"
+                                        onClick={handleSendMessage}
+                                        disabled={!newMessage().trim() || sendingMessage()}
+                                    >
+                                        <Show when={sendingMessage()}>
+                                            <div class="loading loading-spinner loading-sm"></div>
+                                        </Show>
+                                        <Show when={!sendingMessage()}>
+                                            <Icon name="right-arr" class="w-4 h-4 sm:w-5 sm:h-5" />
+                                        </Show>
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </Show>
+                </div>
+
+                {/* Desktop View - Left Column */}
+                <div class="hidden md:flex w-1/3 flex-col h-full border-r border-base-300 lg:p-4">
+                    {/* Desktop Header */}
+                    <div class="hidden md:flex flex-col gap-4 mb-6">
+                        <h2 class="text-xl lg:text-2xl font-bold text-primary flex items-center gap-2">
+                            <Icon name="groups" class="w-6 h-6 lg:w-7 lg:h-7" />
                             Communauté
                         </h2>
                         
-                        {/* Tabs */}
+                        {/* Desktop Tabs */}
                         <div class="tabs tabs-lifted">
                             <a 
                                 role="tab" 
@@ -830,13 +1142,16 @@ export default function Community(props: CommunityProps) {
                                 Amis
                             </a>
                         </div>
+                    </div>
 
+                    {/* Content area - responsive search and controls */}
+                    <div class="mb-3 sm:mb-4">
                         {/* Search */}
-                        <div class="flex gap-2">
+                        <div class="flex gap-1 sm:gap-2">
                             <input 
                                 type="text" 
                                 placeholder="Rechercher..." 
-                                class="input input-bordered flex-1"
+                                class="input input-bordered input-sm sm:input-md flex-1 text-xs sm:text-sm"
                                 value={searchQuery()}
                                 onInput={(e) => {
                                     setSearchQuery(e.target.value);
@@ -849,10 +1164,12 @@ export default function Community(props: CommunityProps) {
                                     (document.getElementById(modalId) as HTMLDialogElement)?.showModal();
                                 }}
                             >
-                                <Icon name="add" class="w-4 h-4" />
-                                <Show when={activeTab() === 'conversations'} fallback="Ami">
-                                    Conv
-                                </Show>
+                                <Icon name="add" class="w-3 h-3 sm:w-4 sm:h-4" />
+                                <span class="hidden sm:inline">
+                                    <Show when={activeTab() === 'conversations'} fallback="Ami">
+                                        Conv
+                                    </Show>
+                                </span>
                             </button>
                         </div>
                     </div>
@@ -1144,16 +1461,16 @@ export default function Community(props: CommunityProps) {
                     </div>
                 </div>
 
-                {/* Right Column - Chat Area */}
-                <div class="flex-1 flex flex-col h-full">
+                {/* Desktop View - Right Column - Chat Area */}
+                <div class="hidden md:flex flex-1 flex-col h-full min-h-0 p-0">
                     <Show 
                         when={selectedConversation()} 
                         fallback={
-                            <div class="flex-1 flex items-center justify-center text-center">
+                            <div class="flex-1 flex items-center justify-center text-center p-4">
                                 <div>
-                                    <Icon name="chat" class="w-16 h-16 mx-auto text-base-content/30 mb-4" />
-                                    <h3 class="text-lg font-semibold mb-2">Sélectionnez une conversation</h3>
-                                    <p class="text-base-content/70">
+                                    <Icon name="chat" class="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-base-content/30 mb-4" />
+                                    <h3 class="text-base sm:text-lg font-semibold mb-2">Sélectionnez une conversation</h3>
+                                    <p class="text-sm sm:text-base text-base-content/70">
                                         Choisissez une conversation dans la liste pour commencer à discuter
                                     </p>
                                 </div>
@@ -1161,14 +1478,22 @@ export default function Community(props: CommunityProps) {
                         }
                     >
                         {/* Chat Header */}
-                        <div class="flex items-center justify-between p-4 border-b border-base-300 bg-base-200 rounded-t-lg">
-                            <div class="flex items-center gap-3">
+                        <div class="flex items-center justify-between p-2 sm:p-4 border-b border-base-300 bg-base-200 rounded-t-lg">
+                            {/* Mobile back button */}
+                            <button 
+                                class="btn btn-ghost btn-sm md:hidden mr-2"
+                                onClick={() => setSelectedConversation(null)}
+                            >
+                                <Icon name="left-arr" class="w-4 h-4" />
+                            </button>
+                            
+                            <div class="flex items-center gap-2 sm:gap-3 flex-1">
                                 <Icon 
                                     name={selectedConversationData()?.conversation.type === 'group' ? 'groups' : 'person_outline'} 
-                                    class="w-6 h-6 text-primary" 
+                                    class="w-5 h-5 sm:w-6 sm:h-6 text-primary" 
                                 />
-                                <div>
-                                    <h3 class="font-semibold">
+                                <div class="min-w-0 flex-1">
+                                    <h3 class="font-semibold text-sm sm:text-base truncate">
                                         <Show 
                                             when={selectedConversationData()} 
                                             fallback={getNewConversationTitle()}
@@ -1176,7 +1501,7 @@ export default function Community(props: CommunityProps) {
                                             {getConversationTitle(selectedConversationData()!)}
                                         </Show>
                                     </h3>
-                                    <p class="text-sm text-base-content/70">
+                                    <p class="text-xs sm:text-sm text-base-content/70">
                                         <Show when={selectedConversationData()?.conversation.type === 'group'} fallback="En ligne">
                                             {selectedConversationData()?.participants.length} participants
                                         </Show>
@@ -1324,7 +1649,7 @@ export default function Community(props: CommunityProps) {
                         </div>
 
                         {/* Messages Area */}
-                        <div class="flex-1 overflow-y-auto p-4 space-y-4 bg-base-100/50">
+                        <div class="flex-1 overflow-y-auto p-4 space-y-4 bg-base-100/50 min-h-0">
                             <Show when={loadingMessages()} fallback={
                                 <For each={selectedMessages()}>
                                     {(messageData) => {
@@ -1377,34 +1702,34 @@ export default function Community(props: CommunityProps) {
                                 </div>
                             </Show>
                         </div>
-
-                        {/* Message Input */}
-                        <div class="p-4 border-t border-base-300 bg-base-200 rounded-b-lg">
-                            <div class="flex gap-2 items-end">
-                                <input
-                                    type="text"
-                                    class="input input-bordered flex-1"
-                                    placeholder="Tapez votre message..."
-                                    value={newMessage()}
-                                    onInput={(e) => setNewMessage(e.target.value)}
-                                    onKeyDown={handleKeyPress}
-                                    disabled={sendingMessage()}
-                                />
-                                <button 
-                                    class="btn btn-primary"
-                                    onClick={handleSendMessage}
-                                    disabled={!newMessage().trim() || sendingMessage()}
-                                >
-                                    <Show when={sendingMessage()}>
-                                        <div class="loading loading-spinner loading-sm"></div>
-                                    </Show>
-                                    <Show when={!sendingMessage()}>
-                                        <Icon name="right-arr" class="w-5 h-5" />
-                                    </Show>
-                                </button>
+                            {/* Message Input */}
+                            <div class="p-4 border-t border-base-300 bg-base-200 rounded-b-lg">
+                                <div class="flex gap-2 items-end">
+                                    <input
+                                        type="text"
+                                        class="input input-bordered flex-1"
+                                        placeholder="Tapez votre message..."
+                                        value={newMessage()}
+                                        onInput={(e) => setNewMessage(e.target.value)}
+                                        onKeyDown={handleKeyPress}
+                                        disabled={sendingMessage()}
+                                    />
+                                    <button 
+                                        class="btn btn-primary"
+                                        onClick={handleSendMessage}
+                                        disabled={!newMessage().trim() || sendingMessage()}
+                                    >
+                                        <Show when={sendingMessage()}>
+                                            <div class="loading loading-spinner loading-sm"></div>
+                                        </Show>
+                                        <Show when={!sendingMessage()}>
+                                            <Icon name="right-arr" class="w-5 h-5" />
+                                        </Show>
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                    </Show>
+                        </Show>
+                    </div>
                 </div>
             </div>
 

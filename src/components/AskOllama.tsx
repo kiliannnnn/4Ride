@@ -406,40 +406,41 @@ export default function AskOllama(props: AskOllamaProps) {
   }
 
   return (
-    <div class="relative w-full overflow-hidden flex items-center justify-center" style={{ 'min-height': 'calc(100vh - 128px)', height: 'calc(100vh - 128px)' }}>
+    <div class="relative w-full overflow-hidden flex items-center justify-center min-h-screen p-2 sm:p-4 md:p-6 lg:p-8">
       {/* Background image */}
       <div class="absolute inset-0 z-0">
         <img src="/assets/images/biker.webp" alt="Background" class="w-full h-full object-cover object-center opacity-50" />
       </div>
       {/* Main card */}
-      <div class="overflow-hidden relative z-10 w-full max-w-6xl md:max-w-7xl lg:max-w-8xl p-8 md:p-0 rounded-3xl shadow-2xl bg-base-100/90 backdrop-blur-lg flex flex-row items-stretch justify-center h-full" style={{ 'max-width': '1400px', 'max-height': '90%' }}>
-        <div class="w-full md:w-1/2 flex flex-col h-full">
-          <div class="w-full flex items-center justify-between">
+      <div class="overflow-hidden relative z-10 w-full max-w-sm sm:max-w-6xl md:max-w-7xl lg:max-w-8xl rounded-lg sm:rounded-3xl shadow-2xl bg-base-100/90 backdrop-blur-lg flex flex-col md:flex-row items-stretch justify-center min-h-[calc(100vh-32px)] sm:min-h-[calc(100vh-64px)] md:min-h-[calc(100vh-96px)] lg:min-h-[calc(100vh-128px)]" style={{ 'max-width': '1400px' }}>
+        <div class="w-full md:w-1/2 flex flex-col min-h-0 flex-1">
+          <div class="w-full flex items-center justify-between mb-0 p-0">
             <div class="tabs tabs-lift flex">
-              <label class="tab cursor-pointer" classList={{'tab-active': activeTab() === 'natural'}}>
+              <label class="tab cursor-pointer text-xs sm:text-sm" classList={{'tab-active': activeTab() === 'natural'}}>
                 <input type="radio" name="askollama_tabs" checked={activeTab() === 'natural'} onChange={() => setActiveTab('natural')} />
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 me-2"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" /></svg>
-                Natural
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-3 sm:size-4 me-1 sm:me-2"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" /></svg>
+                <span class="hidden sm:inline">Natural</span>
+                <span class="sm:hidden">AI</span>
               </label>
-              <label class="tab cursor-pointer" classList={{'tab-active': activeTab() === 'form'}}>
+              <label class="tab cursor-pointer text-xs sm:text-sm" classList={{'tab-active': activeTab() === 'form'}}>
                 <input type="radio" name="askollama_tabs" checked={activeTab() === 'form'} onChange={() => setActiveTab('form')} />
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 me-2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z" /></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-3 sm:size-4 me-1 sm:me-2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z" /></svg>
                 Form
               </label>
             </div>
-            <button class="btn btn-outline btn-sm m-1" title="Export/Share" onClick={() => setShowExportModal(true)}>
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+            <button class="btn btn-outline btn-xs sm:btn-sm m-1" title="Export/Share" onClick={() => setShowExportModal(true)}>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3 h-3 sm:w-5 sm:h-5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 16v-8m0 0l-3.5 3.5M12 8l3.5 3.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span class="ml-1 hidden md:inline">Export/Share</span>
+              <span class="ml-1 hidden lg:inline">Export/Share</span>
             </button>
           </div>
-          <div class="tab-content bg-base-100 border-base-300 p-6 flex flex-col flex-1 h-full min-h-0" style={{ display: activeTab() === 'natural' ? 'flex' : 'none' }}>
+          <div class="tab-content bg-base-100 border-base-300 p-2 sm:p-4 md:p-6 flex flex-col flex-1 h-full min-h-0" style={{ display: activeTab() === 'natural' ? 'flex' : 'none' }}>
             {/* Chat messages */}
-            <div class="flex-1 overflow-y-auto mb-4 space-y-2 pr-2 min-h-0">
+            <div class="flex-1 overflow-y-auto mb-2 sm:mb-4 space-y-1 sm:space-y-2 pr-1 sm:pr-2 min-h-0">
               {chatMessages().map((msg, i) => (
                 <div class={msg.role === 'user' ? 'chat chat-end' : 'chat chat-start'}>
-                  <div class={msg.role === 'user' ? 'chat-bubble chat-bubble-primary' : 'chat-bubble chat-bubble-secondary'}>
+                  <div class={`chat-bubble text-xs sm:text-sm ${msg.role === 'user' ? 'chat-bubble-primary' : 'chat-bubble-secondary'}`}>
                     {msg.text}
                   </div>
                 </div>
@@ -447,16 +448,16 @@ export default function AskOllama(props: AskOllamaProps) {
               {/* Display available itineraries as AI message */}
               <Show when={availableItineraries().length > 0 && !isStreaming()}>
                 <div class="chat chat-start">
-                  <div class="chat-bubble chat-bubble-accent">
-                    <div class="font-semibold mb-3">🗺️ Available Itineraries:</div>
-                    <div class="flex flex-col gap-3">
+                  <div class="chat-bubble chat-bubble-accent text-xs sm:text-sm">
+                    <div class="font-semibold mb-2 sm:mb-3 text-xs sm:text-sm">🗺️ Available Itineraries:</div>
+                    <div class="flex flex-col gap-2 sm:gap-3">
                       {availableItineraries().map((it, idx) => (
-                        <div class={`border rounded-lg p-3 transition-all cursor-pointer ${selectedItineraryIdx() === idx ? 'border-primary bg-primary/20 shadow-md' : 'border-base-300 bg-base-100/50'}`}
+                        <div class={`border rounded-lg p-2 sm:p-3 transition-all cursor-pointer ${selectedItineraryIdx() === idx ? 'border-primary bg-primary/20 shadow-md' : 'border-base-300 bg-base-100/50'}`}
                              onClick={() => {
                                setSelectedItineraryIdx(idx);
                                setItinerary(it.cities);
                              }}>
-                          <div class="font-semibold mb-2 text-sm">{it.label || `Itinerary ${idx + 1}`}</div>
+                          <div class="font-semibold mb-1 sm:mb-2 text-xs">{it.label || `Itinerary ${idx + 1}`}</div>
                           <div class="flex flex-wrap gap-1 text-xs">
                             {it.cities.map((city, i) => (
                               <>
@@ -488,14 +489,14 @@ export default function AskOllama(props: AskOllamaProps) {
               )}
             </div>
             {/* Input area */}
-            <div class="flex gap-2 mb-2 overflow-x-auto whitespace-nowrap" style={{ "scrollbar-width": 'none'}}>
+            <div class="flex gap-1 sm:gap-2 mb-2 overflow-x-auto whitespace-nowrap" style={{ "scrollbar-width": 'none'}}>
               {autoPrompts.map(prompt => {
                 let displayPrompt = prompt;
                 const needsLocation = prompt.includes('my location');
                 return (
                   <button
                     type="button"
-                    class="badge badge-outline badge-lg cursor-pointer px-3 py-2 rounded-full text-xs hover:bg-primary hover:text-primary-content transition"
+                    class="badge badge-outline badge-sm sm:badge-lg cursor-pointer px-2 sm:px-3 py-1 sm:py-2 rounded-full text-xs hover:bg-primary hover:text-primary-content transition flex-shrink-0"
                     onClick={async () => {
                       if (needsLocation && !userLocation()) {
                         alert('Location access is required for this prompt. Please enable location access in your browser settings.');
@@ -514,12 +515,13 @@ export default function AskOllama(props: AskOllamaProps) {
                       sendPrompt(displayPrompt);
                     }}
                   >
-                    {displayPrompt}
+                    <span class="hidden sm:inline">{displayPrompt}</span>
+                    <span class="sm:hidden">{displayPrompt.split(' ').slice(0, 2).join(' ')}...</span>
                   </button>
                 );
               })}
             </div>
-            <form class="flex gap-2 items-end flex-shrink-0" style={{ 'margin-top': 0 }} onSubmit={async e => {
+            <form class="flex gap-1 sm:gap-2 items-end flex-shrink-0" style={{ 'margin-top': 0 }} onSubmit={async e => {
               e.preventDefault();
               const message = naturalInput().trim();
               if (!message) return;
@@ -591,22 +593,22 @@ export default function AskOllama(props: AskOllamaProps) {
               <input
                 type="text"
                 name="natural_question"
-                class="input input-bordered w-full"
+                class="input input-bordered input-sm sm:input-md w-full text-xs sm:text-sm"
                 placeholder="Type your question..."
                 value={naturalInput()}
                 onInput={e => setNaturalInput(e.currentTarget.value)}
                 disabled={isStreaming()}
                 autocomplete="off"
               />
-              <button type="submit" class="btn btn-primary" disabled={isStreaming() || !naturalInput().trim()}>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+              <button type="submit" class="btn btn-primary btn-sm sm:btn-md" disabled={isStreaming() || !naturalInput().trim()}>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3 h-3 sm:w-5 sm:h-5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                 </svg>
               </button>
             </form>
-            {errorNatural() && <div class="alert alert-error mt-2">{t(lang, 'error')}: {errorNatural()}</div>}
+            {errorNatural() && <div class="alert alert-error mt-2 text-xs sm:text-sm">{t(lang, 'error')}: {errorNatural()}</div>}
           </div>
-          <div class="tab-content bg-base-100 border-base-300 p-6" style={{ display: activeTab() === 'form' ? 'block' : 'none' }}>
+          <div class="tab-content bg-base-100 border-base-300 p-2 sm:p-4 md:p-6 flex flex-col flex-1 h-full min-h-0" style={{ display: activeTab() === 'form' ? 'flex' : 'none' }}>
             <form onSubmit={async (e: Event) => {
               e.preventDefault();
               setLoading(true);
@@ -648,14 +650,14 @@ export default function AskOllama(props: AskOllamaProps) {
               } finally {
                 setLoading(false);
               }
-            }} class="space-y-4">
-              <div class="flex flex-col md:flex-row md:items-end gap-4 w-full">
-                <div class="flex-1 min-w-0">
-                  <label class="block text-sm font-medium mb-1">{t(lang, 'place')}</label>
+            }} class="space-y-3 sm:space-y-4">
+              <div class="flex flex-col gap-3 sm:gap-4 w-full">
+                <div class="w-full">
+                  <label class="block text-xs sm:text-sm font-medium mb-1">{t(lang, 'place')}</label>
                   <div class="dropdown w-full">
                     <input
                       type="text"
-                      class="input input-bordered w-full"
+                      class="input input-bordered input-sm sm:input-md w-full text-xs sm:text-sm"
                       value={place()}
                       onInput={handleInput}
                       required
@@ -666,12 +668,12 @@ export default function AskOllama(props: AskOllamaProps) {
                     />
                     <ul
                       tabindex="0"
-                      class={`dropdown-content menu bg-base-100 rounded-box z-1 w-full p-2 shadow-sm ${dropdownOpen() ? '' : 'hidden'}`}
+                      class={`dropdown-content menu bg-base-100 rounded-box z-1 w-full p-2 shadow-sm text-xs sm:text-sm ${dropdownOpen() ? '' : 'hidden'}`}
                     >
                       {suggestions().map(s => (
                         <li>
                           <a
-                            class="p-2 hover:bg-base-200 cursor-pointer"
+                            class="p-2 hover:bg-base-200 cursor-pointer text-xs sm:text-sm"
                             onMouseDown={() => handleSuggestionClick(s)}
                           >
                             {s.description}
@@ -681,37 +683,38 @@ export default function AskOllama(props: AskOllamaProps) {
                     </ul>
                   </div>
                 </div>
-                <div class="flex flex-col md:flex-row gap-2 md:items-end h-full">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
                   <div>
-                    <label class="block text-sm font-medium mb-1">{t(lang, 'days')}</label>
+                    <label class="block text-xs sm:text-sm font-medium mb-1">{t(lang, 'days')}</label>
                     <input
                       type="number"
                       min="0"
-                      class="input input-bordered w-full md:w-20"
+                      class="input input-bordered input-sm sm:input-md w-full text-xs sm:text-sm"
                       value={days()}
                       onInput={e => setDays(e.currentTarget.value)}
                     />
                   </div>
                   <div>
-                    <label class="block text-sm font-medium mb-1">{t(lang, 'hours')}</label>
+                    <label class="block text-xs sm:text-sm font-medium mb-1">{t(lang, 'hours')}</label>
                     <input
                       type="number"
                       min="0"
                       max="23"
-                      class="input input-bordered w-full md:w-20"
+                      class="input input-bordered input-sm sm:input-md w-full text-xs sm:text-sm"
                       value={hours()}
                       onInput={e => setHours(e.currentTarget.value)}
                     />
                   </div>
-                  <div class="flex flex-col items-start md:self-center mt-4 md:mt-0 md:ml-4">
-                    <label class="block text-sm font-medium mb-1">{t(lang, 'roundTrip')}</label>
-                    <label class="cursor-pointer flex items-center gap-2">
+                  <div class="flex flex-col justify-end">
+                    <label class="block text-xs sm:text-sm font-medium mb-1">{t(lang, 'roundTrip')}</label>
+                    <label class="cursor-pointer flex items-center gap-2 h-8 sm:h-12">
                       <input
                         type="checkbox"
-                        class="checkbox checkbox-primary"
+                        class="checkbox checkbox-primary checkbox-sm sm:checkbox-md"
                         checked={roundTrip()}
                         onChange={() => setRoundTrip(v => !v)}
                       />
+                      <span class="text-xs sm:text-sm">Round trip</span>
                     </label>
                   </div>
                 </div>
@@ -720,16 +723,16 @@ export default function AskOllama(props: AskOllamaProps) {
                 {/* Features Accordion */}
                 <div class="collapse collapse-arrow join-item border-base-300 border">
                   <input type="radio" name="form-accordion" checked />
-                  <div class="collapse-title font-semibold">
+                  <div class="collapse-title font-semibold text-sm sm:text-base">
                     {t(lang, 'features')}
                   </div>
                   <div class="collapse-content">
-                    <div class="flex flex-wrap gap-2">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {FEATURES.map(f => (
-                        <label class="cursor-pointer flex items-center gap-1">
+                        <label class="cursor-pointer flex items-center gap-2 text-xs sm:text-sm">
                           <input
                             type="checkbox"
-                            class="checkbox checkbox-primary"
+                            class="checkbox checkbox-primary checkbox-sm sm:checkbox-md"
                             checked={features().includes(f.key)}
                             onChange={() => handleCheckbox(features(), setFeatures, f.key)}
                           />
@@ -742,7 +745,7 @@ export default function AskOllama(props: AskOllamaProps) {
                 {/* Avoid Accordion */}
                 <div class="collapse collapse-arrow join-item border-base-300 border">
                   <input type="radio" name="form-accordion" />
-                  <div class="collapse-title font-semibold">
+                  <div class="collapse-title font-semibold text-sm sm:text-base">
                     {t(lang, 'avoid')}
                   </div>
                   <div class="collapse-content">
@@ -785,33 +788,33 @@ export default function AskOllama(props: AskOllamaProps) {
                   </div>
                 </div>
               </div>
-              <button type="submit" class="btn btn-primary w-full" disabled={loading()}>
+              <button type="submit" class="btn btn-primary btn-sm sm:btn-md w-full text-xs sm:text-sm" disabled={loading()}>
                 {loading() ? t(lang, 'asking') : t(lang, 'ask')}
               </button>
             </form>
-            {errorForm() && <div class="alert alert-error mt-4">{t(lang, 'error')}: {errorForm()}</div>}
+            {errorForm() && <div class="alert alert-error mt-3 sm:mt-4 text-xs sm:text-sm">{t(lang, 'error')}: {errorForm()}</div>}
             {responseForm() && (
-              <div class="alert alert-success mt-4 whitespace-pre-line">
+              <div class="alert alert-success mt-3 sm:mt-4 whitespace-pre-line text-xs sm:text-sm">
                 {t(lang, 'response')}:<br />{responseForm()}
               </div>
             )}
             {parsingForm() && (
-              <div class="flex items-center gap-2 mt-4"><span class="loading loading-spinner loading-md text-info"></span> <span>Calculating itinerary...</span></div>
+              <div class="flex items-center gap-2 mt-3 sm:mt-4 text-xs sm:text-sm"><span class="loading loading-spinner loading-sm sm:loading-md text-info"></span> <span>Calculating itinerary...</span></div>
             )}
           </div>
         </div>
-        <div class="w-full md:w-1/2 flex flex-col items-center h-full">
-          <div ref={el => (mapRef = el as HTMLDivElement)} class="w-full h-full min-h-[300px]" />
+        <div class="w-full md:w-1/2 flex flex-col min-h-0 md:min-h-full mt-4 md:mt-0 flex-1">
+          <div ref={el => (mapRef = el as HTMLDivElement)} class="w-full flex-1 min-h-[300px] rounded-lg md:rounded-none" />
         </div>
       </div>
       {/* Export/Share Modal (daisyUI dialog) */}
       <dialog id="export_modal" class="modal" open={showExportModal()} onClose={() => setShowExportModal(false)}>
-        <div class="modal-box">
-          <h3 class="font-bold text-lg mb-4">Export or Share Route</h3>
-          <div class="flex flex-row gap-6 justify-center items-center mb-2">
+        <div class="modal-box max-w-sm sm:max-w-md">
+          <h3 class="font-bold text-base sm:text-lg mb-3 sm:mb-4">Export or Share Route</h3>
+          <div class="flex flex-row gap-3 sm:gap-6 justify-center items-center mb-2">
             {/* GPX Button */}
             <button
-              class="btn btn-circle btn-lg btn-secondary tooltip w-16 h-16"
+              class="btn btn-circle btn-md sm:btn-lg btn-secondary tooltip w-12 h-12 sm:w-16 sm:h-16"
               aria-label="Export as GPX"
               data-tip="Export as GPX"
               disabled={exportLoading()}
@@ -829,11 +832,11 @@ export default function AskOllama(props: AskOllamaProps) {
                 setShowExportModal(false);
               }}
             >
-              <span class="font-bold text-xl">GPX</span>
+              <span class="font-bold text-sm sm:text-xl">GPX</span>
             </button>
             {/* KML Button */}
             <button
-              class="btn btn-circle btn-lg btn-accent tooltip w-16 h-16"
+              class="btn btn-circle btn-md sm:btn-lg btn-accent tooltip w-12 h-12 sm:w-16 sm:h-16"
               aria-label="Export as KML"
               data-tip="Export as KML"
               disabled={exportLoading()}
@@ -851,27 +854,27 @@ export default function AskOllama(props: AskOllamaProps) {
                 setShowExportModal(false);
               }}
             >
-              <span class="font-bold text-xl">KML</span>
+              <span class="font-bold text-sm sm:text-xl">KML</span>
             </button>
             {/* Google Maps Button */}
             <button
-              class="btn btn-circle btn-lg btn-info tooltip w-16 h-16"
+              class="btn btn-circle btn-md sm:btn-lg btn-info tooltip w-12 h-12 sm:w-16 sm:h-16"
               aria-label="Share to Google Maps"
               data-tip="Share to Google Maps"
               onClick={() => { openGoogleMaps(); setShowExportModal(false); }}
             >
               {/* Fallback: map marker icon */}
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 sm:w-8 sm:h-8">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 21.75c-4.5-6-7.5-9.75-7.5-13.125A7.5 7.5 0 0112 1.125a7.5 7.5 0 017.5 7.5c0 3.375-3 7.125-7.5 13.125z" />
                 <circle cx="12" cy="8.625" r="2.25" />
               </svg>
             </button>
           </div>
-          {exportError() && <div class="alert alert-error mt-2">{exportError()}</div>}
-          {exportLoading() && <div class="flex items-center gap-2 mt-2"><span class="loading loading-spinner loading-md text-info"></span> <span>Loading route...</span></div>}
-          <div class="modal-action mt-4">
+          {exportError() && <div class="alert alert-error mt-2 text-xs sm:text-sm">{exportError()}</div>}
+          {exportLoading() && <div class="flex items-center gap-2 mt-2 text-xs sm:text-sm"><span class="loading loading-spinner loading-sm sm:loading-md text-info"></span> <span>Loading route...</span></div>}
+          <div class="modal-action mt-3 sm:mt-4">
             <form method="dialog">
-              <button class="btn" onClick={() => setShowExportModal(false)}>Close</button>
+              <button class="btn btn-sm sm:btn-md" onClick={() => setShowExportModal(false)}>Close</button>
             </form>
           </div>
         </div>

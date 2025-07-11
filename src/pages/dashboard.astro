@@ -49,95 +49,96 @@ if (user) {
 ---
 
 <Layout>
-  <section class="flex flex-col items-center justify-center py-12 mb-8 w-full">
-    <h1 class="text-4xl md:text-5xl font-extrabold text-primary mb-2 text-center">
+  <section class="flex flex-col items-center justify-center py-8 sm:py-12 mb-6 sm:mb-8 w-full px-4">
+    <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-primary mb-2 text-center">
       Tableau de bord
     </h1>
-    <p class="text-lg md:text-xl text-base-content/80 text-center max-w-2xl">
+    <p class="text-base sm:text-lg md:text-xl text-base-content/80 text-center max-w-2xl">
       Bienvenue sur votre espace personnel 4Ride !
     </p>
   </section>
-  <main class="w-full max-w-5xl mx-auto flex flex-col gap-12 px-4 md:px-0">
+  <main class="w-full max-w-6xl mx-auto flex flex-col gap-8 sm:gap-12 px-4 sm:px-6 lg:px-8">
     <!-- Stats -->
     <section>
-      <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
-        <Icon name="stat" class="w-7 h-7 md:w-8 md:h-8 text-primary" />
-        Statistiques rapides
+      <h2 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 flex items-center gap-2">
+        <Icon name="stat" class="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-primary flex-shrink-0" />
+        <span>Statistiques rapides</span>
       </h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="stat bg-base-100 shadow rounded-lg flex flex-col items-center">
-          <div class="stat-figure text-primary"><Icon name="road" class="w-8 h-8" /></div>
-          <div class="stat-title">Total kilomètres</div>
-          <div class="stat-value text-primary">{userProfile?.mileage || 0} km</div>
-          <div class="stat-desc">Distance totale parcourue</div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div class="stat bg-base-100 shadow rounded-lg flex flex-col items-center p-4 sm:p-6">
+          <div class="stat-figure text-primary mb-2"><Icon name="road" class="w-6 h-6 sm:w-8 sm:h-8" /></div>
+          <div class="stat-title text-sm sm:text-base text-center">Total kilomètres</div>
+          <div class="stat-value text-primary text-xl sm:text-2xl lg:text-3xl">{userProfile?.mileage || 0} km</div>
+          <div class="stat-desc text-xs sm:text-sm text-center">Distance totale parcourue</div>
         </div>
-        <div class="stat bg-base-100 shadow rounded-lg flex flex-col items-center">
-          <div class="stat-figure text-secondary"><Icon name="motorcycle" class="w-8 h-8" /></div>
-          <div class="stat-title">Véhicules possédés</div>
-          <div class="stat-value text-secondary">{userVehicles.length}</div>
-          <div class="stat-desc">Nombre de véhicules</div>
+        <div class="stat bg-base-100 shadow rounded-lg flex flex-col items-center p-4 sm:p-6">
+          <div class="stat-figure text-secondary mb-2"><Icon name="motorcycle" class="w-6 h-6 sm:w-8 sm:h-8" /></div>
+          <div class="stat-title text-sm sm:text-base text-center">Véhicules possédés</div>
+          <div class="stat-value text-secondary text-xl sm:text-2xl lg:text-3xl">{userVehicles.length}</div>
+          <div class="stat-desc text-xs sm:text-sm text-center">Nombre de véhicules</div>
         </div>
-        <div class="stat bg-base-100 shadow rounded-lg flex flex-col items-center">
-          <div class="stat-figure text-accent"><Icon name="chat" class="w-8 h-8" /></div>
-          <div class="stat-title">Conversations IA</div>
-          <div class="stat-value text-accent">{promptHistory.length}</div>
-          <div class="stat-desc">Interactions récentes</div>
+        <div class="stat bg-base-100 shadow rounded-lg flex flex-col items-center p-4 sm:p-6 sm:col-span-2 lg:col-span-1">
+          <div class="stat-figure text-accent mb-2"><Icon name="chat" class="w-6 h-6 sm:w-8 sm:h-8" /></div>
+          <div class="stat-title text-sm sm:text-base text-center">Conversations IA</div>
+          <div class="stat-value text-accent text-xl sm:text-2xl lg:text-3xl">{promptHistory.length}</div>
+          <div class="stat-desc text-xs sm:text-sm text-center">Interactions récentes</div>
         </div>
       </div>
     </section>
     <div class="divider"></div>
     <!-- Vehicles Section -->
     <section>
-      <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold flex items-center gap-2">
-          <Icon name="motorcycle" class="w-7 h-7 md:w-8 md:h-8 text-primary" />
-          Mes véhicules
+      <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-4">
+        <h2 class="text-xl sm:text-2xl font-bold flex items-center gap-2">
+          <Icon name="motorcycle" class="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-primary flex-shrink-0" />
+          <span>Mes véhicules</span>
         </h2>
-        <button class="btn btn-primary" onclick="document.getElementById('add_vehicle_modal').showModal()">
-          <Icon name="add" class="w-5 h-5" />
-          Ajouter un véhicule
+        <button class="btn btn-primary btn-sm sm:btn-md w-full sm:w-auto" onclick="document.getElementById('add_vehicle_modal').showModal()">
+          <Icon name="add" class="w-4 h-4 sm:w-5 sm:h-5" />
+          <span class="hidden sm:inline">Ajouter un véhicule</span>
+          <span class="sm:hidden">Ajouter</span>
         </button>
       </div>
       {userVehicles.length === 0 ? (
-        <div class="text-center py-8">
-          <Icon name="motorcycle" class="w-16 h-16 mx-auto text-gray-400 mb-4" />
-          <h3 class="text-lg font-semibold mb-2">Aucun véhicule</h3>
-          <p class="text-gray-600 mb-4">Ajoutez votre premier véhicule pour suivre vos sorties</p>
-          <button class="btn btn-primary" onclick="document.getElementById('add_vehicle_modal').showModal()">
+        <div class="text-center py-6 sm:py-8">
+          <Icon name="motorcycle" class="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-gray-400 mb-4" />
+          <h3 class="text-base sm:text-lg font-semibold mb-2">Aucun véhicule</h3>
+          <p class="text-sm sm:text-base text-gray-600 mb-4 px-4">Ajoutez votre premier véhicule pour suivre vos sorties</p>
+          <button class="btn btn-primary btn-sm sm:btn-md" onclick="document.getElementById('add_vehicle_modal').showModal()">
             Ajouter un véhicule
           </button>
         </div>
       ) : (
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
           {userVehicles.map((vehicle) => (
             <div class="card bg-base-200 shadow-xl">
-              <div class="card-body">
+              <div class="card-body p-4 sm:p-6">
                 <div class="flex justify-between items-start">
-                  <div>
-                    <h3 class="card-title">{vehicle.brand} {vehicle.model}</h3>
+                  <div class="flex-1 min-w-0">
+                    <h3 class="card-title text-base sm:text-lg truncate">{vehicle.brand} {vehicle.model}</h3>
                     <p class="text-sm text-gray-600">{vehicle.year}</p>
                   </div>
-                  <div class="dropdown dropdown-end">
+                  <div class="dropdown dropdown-end ml-2">
                     <div tabindex="0" role="button" class="btn btn-ghost btn-sm">
-                      <Icon name="more-vert" class="w-5 h-5" />
+                      <Icon name="more-vert" class="w-4 h-4 sm:w-5 sm:h-5" />
                     </div>
                     <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                      <li><button data-vehicle-id={`${vehicle.id}`} data-vehicle-brand={`${vehicle.brand}`} data-vehicle-model={`${vehicle.model}`} data-vehicle-year={`${vehicle.year || ''}`} data-vehicle-engine={`${vehicle.engine_size || ''}`} data-vehicle-mileage={`${vehicle.mileage || ''}`} class="edit-vehicle-btn">Modifier</button></li>
-                      <li><button data-vehicle-id={`${vehicle.id}`} class="delete-vehicle-btn text-error">Supprimer</button></li>
+                      <li><button data-vehicle-id={`${vehicle.id}`} data-vehicle-brand={`${vehicle.brand}`} data-vehicle-model={`${vehicle.model}`} data-vehicle-year={`${vehicle.year || ''}`} data-vehicle-engine={`${vehicle.engine_size || ''}`} data-vehicle-mileage={`${vehicle.mileage || ''}`} class="edit-vehicle-btn text-sm">Modifier</button></li>
+                      <li><button data-vehicle-id={`${vehicle.id}`} class="delete-vehicle-btn text-error text-sm">Supprimer</button></li>
                     </ul>
                   </div>
                 </div>
-                <div class="mt-4 space-y-2">
+                <div class="mt-3 sm:mt-4 space-y-2">
                   {vehicle.engine_size && (
                     <div class="flex justify-between">
-                      <span class="text-sm text-gray-600">Cylindrée :</span>
-                      <span class="text-sm font-medium">{vehicle.engine_size}cc</span>
+                      <span class="text-xs sm:text-sm text-gray-600">Cylindrée :</span>
+                      <span class="text-xs sm:text-sm font-medium">{vehicle.engine_size}cc</span>
                     </div>
                   )}
                   {vehicle.mileage && (
                     <div class="flex justify-between">
-                      <span class="text-sm text-gray-600">Kilométrage :</span>
-                      <span class="text-sm font-medium">{vehicle.mileage} km</span>
+                      <span class="text-xs sm:text-sm text-gray-600">Kilométrage :</span>
+                      <span class="text-xs sm:text-sm font-medium">{vehicle.mileage} km</span>
                     </div>
                   )}
                 </div>
@@ -150,53 +151,54 @@ if (user) {
     <div class="divider"></div>
     <!-- AI Chat History Section -->
     <section>
-      <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold flex items-center gap-2">
-          <Icon name="chat" class="w-7 h-7 md:w-8 md:h-8 text-primary" />
-          Historique des conversations IA
+      <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-4">
+        <h2 class="text-xl sm:text-2xl font-bold flex items-center gap-2">
+          <Icon name="chat" class="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-primary flex-shrink-0" />
+          <span>Historique des conversations IA</span>
         </h2>
-        <a href="/" class="btn btn-outline">
-          <Icon name="add" class="w-5 h-5" />
-          Nouvelle conversation
+        <a href="/" class="btn btn-outline btn-sm sm:btn-md w-full sm:w-auto">
+          <Icon name="add" class="w-4 h-4 sm:w-5 sm:h-5" />
+          <span class="hidden sm:inline">Nouvelle conversation</span>
+          <span class="sm:hidden">Nouvelle</span>
         </a>
       </div>
       {promptHistory.length === 0 ? (
-        <div class="text-center py-8">
-          <Icon name="chat" class="w-16 h-16 mx-auto text-gray-400 mb-4" />
-          <h3 class="text-lg font-semibold mb-2">Aucune conversation</h3>
-          <p class="text-gray-600 mb-4">Commencez une conversation avec l'IA pour voir votre historique ici</p>
-          <a href="/" class="btn btn-primary">
+        <div class="text-center py-6 sm:py-8">
+          <Icon name="chat" class="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-gray-400 mb-4" />
+          <h3 class="text-base sm:text-lg font-semibold mb-2">Aucune conversation</h3>
+          <p class="text-sm sm:text-base text-gray-600 mb-4 px-4">Commencez une conversation avec l'IA pour voir votre historique ici</p>
+          <a href="/" class="btn btn-primary btn-sm sm:btn-md">
             Démarrer une conversation
           </a>
         </div>
       ) : (
-        <div class="space-y-4">
+        <div class="space-y-3 sm:space-y-4">
           {promptHistory.map((prompt) => (
             <div class="card bg-base-200 shadow-lg">
-              <div class="card-body">
-                <div class="flex justify-between items-start">
-                  <div class="flex-1">
+              <div class="card-body p-4 sm:p-6">
+                <div class="flex justify-between items-start gap-2">
+                  <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 mb-2">
-                      <span class="text-sm text-gray-500">
+                      <span class="text-xs sm:text-sm text-gray-500">
                         {new Date(prompt.created_at).toLocaleDateString()} à {new Date(prompt.created_at).toLocaleTimeString()}
                       </span>
                     </div>
-                    <div class="space-y-2">
+                    <div class="space-y-2 sm:space-y-3">
                       <div>
-                        <h4 class="font-semibold text-sm text-gray-700 mb-1">Votre question :</h4>
-                        <p class="text-sm bg-base-100 p-2 rounded">{prompt.user_input}</p>
+                        <h4 class="font-semibold text-xs sm:text-sm text-gray-700 mb-1">Votre question :</h4>
+                        <p class="text-xs sm:text-sm bg-base-100 p-2 sm:p-3 rounded break-words">{prompt.user_input}</p>
                       </div>
                       {prompt.answer && (
                         <div>
-                          <h4 class="font-semibold text-sm text-gray-700 mb-1">Réponse IA :</h4>
-                          <p class="text-sm bg-base-100 p-2 rounded line-clamp-3">{prompt.answer}</p>
+                          <h4 class="font-semibold text-xs sm:text-sm text-gray-700 mb-1">Réponse IA :</h4>
+                          <p class="text-xs sm:text-sm bg-base-100 p-2 sm:p-3 rounded line-clamp-3 break-words">{prompt.answer}</p>
                         </div>
                       )}
                     </div>
                   </div>
                   <div class="dropdown dropdown-end">
                     <div tabindex="0" role="button" class="btn btn-ghost btn-sm">
-                      <Icon name="more-vert" class="w-5 h-5" />
+                      <Icon name="more-vert" class="w-4 h-4 sm:w-5 sm:h-5" />
                     </div>
                     <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
                       <li><button data-prompt-id={`${prompt.id}`} class="delete-prompt-btn text-error">Supprimer</button></li>
