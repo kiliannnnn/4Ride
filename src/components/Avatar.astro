@@ -15,9 +15,9 @@ const isAdmin = Astro.locals.isAdmin;
     <summary role="button" class="btn btn-ghost btn-circle avatar">
         <div class="w-10 rounded-full">
             { user ? (
-                <img alt="profile picture" src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"/>
-            ) : (
                 <Icon name="helmet" class="w-full h-full"/>
+            ) : (
+                <Icon name="person" class="w-full h-full"/>
             )}
         </div>
     </summary>
