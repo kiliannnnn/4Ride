@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { getUserProfileById } from "@/lib/services/userProfileServices";
 import { listVehicles, deleteVehicle } from "@/lib/services/vehiclesServices";
 import { listVehiclesOwnerships } from "@/lib/services/vehiclesOwnershipServices";
+import { getPromptsHistoryByUser } from "@/lib/services/promptsHistoryServices";
 import { Icon } from "astro-icon/components";
 import type { Tables } from '@/database.types';
 
@@ -40,15 +41,7 @@ if (user) {
 let promptHistory: Tables<'prompts_history'>[] = [];
 if (user) {
   try {
-    const { data, error } = await supabase
-      .from('prompts_history')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(10);
-    if (!error && data) {
-      promptHistory = data;
-    }
+    promptHistory = await getPromptsHistoryByUser(user.id, 10);
   } catch (error) {
     console.error('Error fetching prompt history:', error);
   }

@@ -46,4 +46,20 @@ export async function listPromptsHistory(): Promise<Tables<'prompts_history'>[]>
     .select('*');
   if (error) throw error;
   return data || [];
-} 
+}
+
+export async function getPromptsHistoryByUser(userId: string, limit?: number): Promise<Tables<'prompts_history'>[]> {
+  let query = supabase
+    .from('prompts_history')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+    
+  if (limit) {
+    query = query.limit(limit);
+  }
+    
+  const { data, error } = await query;
+  if (error) throw error;
+  return data || [];
+}

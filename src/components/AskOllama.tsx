@@ -435,36 +435,6 @@ export default function AskOllama(props: AskOllamaProps) {
             </button>
           </div>
           <div class="tab-content bg-base-100 border-base-300 p-6 flex flex-col flex-1 h-full min-h-0" style={{ display: activeTab() === 'natural' ? 'flex' : 'none' }}>
-            {/* Current itinerary display */}
-            <Show when={availableItineraries().length > 0}>
-              <div class="mb-4 flex-shrink-0">
-                <div class="font-semibold mb-2 text-lg">Available Itineraries:</div>
-                <div class="flex flex-col gap-4">
-                  {availableItineraries().map((it, idx) => (
-                    <div class={`border rounded-xl p-4 flex flex-col md:flex-row items-center gap-4 transition-all ${selectedItineraryIdx() === idx ? 'border-primary bg-primary/10 shadow-lg' : 'border-base-300 bg-base-200'}`}
-                         style={{ cursor: 'pointer' }}
-                         onClick={() => {
-                           setSelectedItineraryIdx(idx);
-                           setItinerary(it.cities);
-                         }}>
-                      <div class="flex-1">
-                        <div class="font-semibold mb-1">{it.label || `Itinerary ${idx + 1}`}</div>
-                        <div class="text-xs text-gray-500 mb-1">Route preview:</div>
-                        <div class="flex flex-wrap gap-1 text-sm">
-                          {it.cities.map((city, i) => (
-                            <>
-                              <span class="px-2 py-1 bg-base-100 rounded border border-base-300">{city}</span>
-                              {i < it.cities.length - 1 && <span class="mx-1 text-primary">→</span>}
-                            </>
-                          ))}
-                        </div>
-                      </div>
-                      <button class={`btn btn-sm ${selectedItineraryIdx() === idx ? 'btn-primary' : 'btn-outline'}`}>Select</button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </Show>
             {/* Chat messages */}
             <div class="flex-1 overflow-y-auto mb-4 space-y-2 pr-2 min-h-0">
               {chatMessages().map((msg, i) => (
@@ -474,6 +444,39 @@ export default function AskOllama(props: AskOllamaProps) {
                   </div>
                 </div>
               ))}
+              {/* Display available itineraries as AI message */}
+              <Show when={availableItineraries().length > 0 && !isStreaming()}>
+                <div class="chat chat-start">
+                  <div class="chat-bubble chat-bubble-accent">
+                    <div class="font-semibold mb-3">🗺️ Available Itineraries:</div>
+                    <div class="flex flex-col gap-3">
+                      {availableItineraries().map((it, idx) => (
+                        <div class={`border rounded-lg p-3 transition-all cursor-pointer ${selectedItineraryIdx() === idx ? 'border-primary bg-primary/20 shadow-md' : 'border-base-300 bg-base-100/50'}`}
+                             onClick={() => {
+                               setSelectedItineraryIdx(idx);
+                               setItinerary(it.cities);
+                             }}>
+                          <div class="font-semibold mb-2 text-sm">{it.label || `Itinerary ${idx + 1}`}</div>
+                          <div class="flex flex-wrap gap-1 text-xs">
+                            {it.cities.map((city, i) => (
+                              <>
+                                <span class="px-2 py-1 bg-base-200 rounded text-xs">{city}</span>
+                                {i < it.cities.length - 1 && <span class="mx-1 text-primary font-bold">→</span>}
+                              </>
+                            ))}
+                          </div>
+                          {selectedItineraryIdx() === idx && (
+                            <div class="mt-2">
+                              <span class="badge badge-primary badge-sm">✓ Selected</span>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <div class="mt-2 text-xs opacity-70">Click on an itinerary above to select it and view it on the map.</div>
+                  </div>
+                </div>
+              </Show>
               {/* Streaming AI message */}
               {isStreaming() && (
                 <div class="chat chat-start">

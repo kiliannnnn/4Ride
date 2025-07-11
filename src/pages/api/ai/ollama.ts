@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { createPromptHistory, updatePromptHistory } from '@/lib/services/promptsHistoryServices';
 
 const featureLabels: Record<string, string> = {
   mountains: 'mountains',
@@ -51,12 +52,16 @@ ${langInstruction}
 `.trim();
 }
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, locals }) => {
   try {
     const body = await request.json();
     const { mode = 'form' } = body;
     let prompt = '';
     let langInstruction = '';
+    let userInput = '';
+
+    // Check if user is authenticated for saving history
+    const userId = locals.sb_user?.id;
 
     if (body.lang === 'fr') langInstruction = 'Answer in French.';
     else if (body.lang === 'es') langInstruction = 'Answer in Spanish.';
@@ -65,6 +70,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (mode === 'natural-convo') {
       const { history, itinerary, message } = body;
+      userInput = message || '';
       const convo = (history || []).map((m: any) => `${m.role === 'user' ? 'User' : 'AI'}: ${m.text}`).join('\n');
       const itineraryText = Array.isArray(itinerary) && itinerary.length > 0
         ? `The current itinerary is: [${itinerary.map((c: string) => '"' + c + '"').join(', ')}].`
@@ -87,7 +93,7 @@ ${convo}
 
 User: ${message}
 
-Suggest multiple (at least 2) different itineraries, and for each, present the pros and cons.
+Suggest 2 different itineraries, and for each, present the pros and cons.
 
 At the end of your answer, output ONLY the list of main cities or towns to pass through for each itinerary, in order, as a valid JSON array (no markdown, no explanation, no code block), clearly marked as:
 Cities for itinerary 1: ["...", "..."]
@@ -100,10 +106,28 @@ ${langInstruction}
       if (!place || (!days && !hours)) {
         return new Response(JSON.stringify({ error: 'Missing place or duration' }), { status: 400 });
       }
+      userInput = `Place: ${place}, Days: ${days || 0}, Hours: ${hours || 0}, Features: ${features?.join(', ') || 'none'}, Avoid: ${avoid?.join(', ') || 'none'}, Style: ${style || 'normal'}, Round trip: ${roundTrip !== false}`;
       prompt = buildPrompt({ place, days, hours, features, avoid, style, langInstruction, roundTrip });
     }
 
     console.log(prompt);
+
+    // Save prompt history if user is authenticated
+    let promptHistoryId: number | null = null;
+    if (userId) {
+      try {
+        const promptHistory = await createPromptHistory({
+          prompt,
+          user_input: userInput,
+          user_id: userId,
+          answer: null // Will be updated later with the response
+        });
+        promptHistoryId = promptHistory?.id || null;
+      } catch (error) {
+        console.error('Failed to save prompt history:', error);
+        // Continue with the request even if saving fails
+      }
+    }
 
     const ollamaIp = import.meta.env.PUBLIC_OLLAMA_IP;
     const ollamaPort = import.meta.env.PUBLIC_OLLAMA_PORT;
@@ -145,6 +169,18 @@ ${langInstruction}
             }
           }
         }
+        
+        // Update prompt history with the complete response if we have a history record
+        if (userId && promptHistoryId) {
+          try {
+            await updatePromptHistory(promptHistoryId, {
+              answer: fullText
+            });
+          } catch (error) {
+            console.error('Failed to update prompt history with response:', error);
+          }
+        }
+        
         controller.close();
       }
     });
