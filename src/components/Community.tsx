@@ -796,7 +796,7 @@ export default function Community(props: CommunityProps) {
                 </div>
 
                 {/* Main Container */}
-                <div class="overflow-hidden relative z-10 w-full max-w-sm sm:max-w-6xl md:max-w-7xl lg:max-w-8xl rounded-lg sm:rounded-3xl shadow-2xl bg-base-100/90 backdrop-blur-lg flex flex-col md:flex-row items-stretch justify-center h-auto min-h-[calc(100vh-32px)] sm:min-h-[calc(100vh-64px)] md:min-h-[calc(100vh-96px)] lg:min-h-[calc(100vh-128px)] max-h-[calc(100vh-32px)] sm:max-h-[calc(100vh-64px)] md:max-h-[calc(100vh-96px)] lg:max-h-[calc(100vh-128px)] overflow-y-auto" style={{ 'max-width': '1400px' }}>
+                <div class="overflow-hidden relative z-10 w-full max-w-sm sm:max-w-6xl md:max-w-7xl lg:max-w-8xl rounded-lg sm:rounded-3xl shadow-2xl bg-base-100/90 backdrop-blur-lg flex flex-col md:flex-row items-stretch justify-center h-[600px] md:h-[700px] lg:h-[750px] overflow-y-auto" style={{ 'max-width': '1600px' }}>
                 
                 {/* Mobile Header */}
                 <div class="md:hidden p-3 sm:p-4 border-b border-base-300">

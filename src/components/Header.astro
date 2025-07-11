@@ -7,24 +7,28 @@ import Avatar from "@/components/Avatar.astro";
 import Theme from "@/components/Theme.astro";
 ---
 
-<div class="navbar bg-base-100 px-2 sm:px-4">
-    <div class="navbar-start">
-        <details class="dropdown">
-            <summary role="button" class="btn btn-ghost lg:hidden">
-                <Icon name="menu" class="w-5 h-5 sm:w-6 sm:h-6"/>
-            </summary>
-            <div class="dropdown-content">
+<div class="w-full bg-base-100">
+    <div class="2xl:max-w-7xl 2xl:mx-auto">
+        <div class="navbar px-2 sm:px-4">
+            <div class="navbar-start">
+                <details class="dropdown">
+                    <summary role="button" class="btn btn-ghost lg:hidden">
+                        <Icon name="menu" class="w-5 h-5 sm:w-6 sm:h-6"/>
+                    </summary>
+                    <div class="dropdown-content">
+                        <Nav />
+                    </div>
+                </details>
+                <a class="btn btn-ghost text-lg sm:text-xl font-bold">4Ride</a>
+            </div>
+            <div class="navbar-center hidden lg:flex">
                 <Nav />
             </div>
-        </details>
-        <a class="btn btn-ghost text-lg sm:text-xl font-bold">4Ride</a>
-    </div>
-    <div class="navbar-center hidden lg:flex">
-        <Nav />
-    </div>
-    <div class="navbar-end flex items-center space-x-1 sm:space-x-3">
-        <Lang />
-        <Theme />
-        <Avatar />
+            <div class="navbar-end flex items-center space-x-1 sm:space-x-3">
+                <Lang />
+                <Theme />
+                <Avatar />
+            </div>
+        </div>
     </div>
 </div>

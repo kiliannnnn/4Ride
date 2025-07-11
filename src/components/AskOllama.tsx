@@ -412,7 +412,7 @@ export default function AskOllama(props: AskOllamaProps) {
         <img src="/assets/images/biker.webp" alt="Background" class="w-full h-full object-cover object-center opacity-50" />
       </div>
       {/* Main card */}
-      <div class="overflow-hidden relative z-10 w-full max-w-sm sm:max-w-6xl md:max-w-7xl lg:max-w-8xl rounded-lg sm:rounded-3xl shadow-2xl bg-base-100/90 backdrop-blur-lg flex flex-col md:flex-row items-stretch justify-center min-h-[calc(100vh-32px)] sm:min-h-[calc(100vh-64px)] md:min-h-[calc(100vh-96px)] lg:min-h-[calc(100vh-128px)]" style={{ 'max-width': '1400px' }}>
+      <div class="overflow-hidden relative z-10 w-full max-w-sm sm:max-w-6xl md:max-w-7xl lg:max-w-8xl rounded-lg sm:rounded-3xl shadow-2xl bg-base-100/90 backdrop-blur-lg flex flex-col md:flex-row items-stretch justify-center h-[600px] md:h-[700px] lg:h-[750px]" style={{ 'max-width': '1600px' }}>
         <div class="w-full md:w-1/2 flex flex-col min-h-0 flex-1">
           <div class="w-full flex items-center justify-between mb-0 p-0">
             <div class="tabs tabs-lift flex">

@@ -7,19 +7,19 @@ const t = useTranslations(lang);
 const tRoute = useTranslationsRoute(lang);
 ---
 
-<ul class="menu px-1 lg:menu-horizontal sm:dropdown-content bg-base-100 rounded-box sm:z-[1] sm:mt-3 w-52 lg:w-auto sm:p-2 sm:shadow">
+<ul class="menu px-1 lg:menu-horizontal sm:dropdown-content bg-base-100 rounded-box sm:z-[1] sm:mt-3 w-52 lg:w-auto sm:p-2 sm:shadow lg:gap-2 xl:gap-4">
     <li>
-        <a href={getRelativeLocaleUrl(lang, "")}>
+        <a href={getRelativeLocaleUrl(lang, "")} class="lg:px-4 xl:px-6 lg:text-base xl:text-lg">
             {t("nav.home")}
         </a>
     </li>
     <li>
-        <a href={getRelativeLocaleUrl(lang, tRoute("community"))}>
+        <a href={getRelativeLocaleUrl(lang, tRoute("community"))} class="lg:px-4 xl:px-6 lg:text-base xl:text-lg">
             {t("nav.community")}
         </a>
     </li>
     <li>
-        <a href={getRelativeLocaleUrl(lang, tRoute("about"))}>
+        <a href={getRelativeLocaleUrl(lang, tRoute("about"))} class="lg:px-4 xl:px-6 lg:text-base xl:text-lg">
             {t("nav.about")}
         </a>
     </li>
